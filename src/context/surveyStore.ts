@@ -1,37 +1,62 @@
 import { create } from 'zustand';
-import { Survey, Question, QuestionType } from '../types/survey';
+import { Survey, QuestionTypeModel, QuestionType } from '../types/survey';
 
 interface SurveyStore {
   survey: Survey;
-  addQuestion: (question: Question) => void;
-  updateQuestion: (id: string, updates: Partial<Question>) => void;
+  addQuestion: (question: QuestionTypeModel) => void;
   removeQuestion: (id: string) => void;
+  updateQuestion: (id: string, updates: Partial<QuestionTypeModel>) => void;
   updateSurvey: (updates: Partial<Survey>) => void;
   clearSurvey: () => void;
 }
 
 export const useSurveyStore = create<SurveyStore>((set) => ({
   survey: {
-    id: '',
-    title: '',
-    description: '',
-    questions: []
+    id: crypto.randomUUID(),
+    title: 'New Survey',
+    description: 'Survey Description',
+    questions: [
+      {
+        id: crypto.randomUUID(),
+        type: QuestionType.RADIO,
+        questionText: 'Question 1',
+        options: [
+          { id: crypto.randomUUID(), text: 'Option 1' },
+          { id: crypto.randomUUID(), text: 'Option 2' }
+        ]
+      },
+      {
+        id: crypto.randomUUID(),
+        type: QuestionType.CHECKBOX,
+        questionText: 'Question 2',
+        options: [
+          { id: crypto.randomUUID(), text: 'Option 1' },
+          { id: crypto.randomUUID(), text: 'Option 2' }
+        ]
+      },
+      {
+        id: crypto.randomUUID(),
+        type: QuestionType.SHORT_ANSWER,
+        questionText: 'Question 3',
+        placeholder: 'Enter your answer'
+      }
+    ]
   },
-  addQuestion: (question: Question) => set((state) => ({
+  addQuestion: (question: QuestionTypeModel) => set((state) => ({
     survey: { ...state.survey, questions: [...state.survey.questions, question] }
-  })),
-  updateQuestion: (id: string, updates: Partial<Question>) => set((state) => ({
-    survey: {
-      ...state.survey,
-      questions: state.survey.questions.map((q) =>
-        q.id === id ? { ...q, ...updates } : q
-      )
-    }
   })),
   removeQuestion: (id: string) => set((state) => ({
     survey: {
       ...state.survey,
       questions: state.survey.questions.filter((q) => q.id !== id)
+    }
+  })),
+  updateQuestion: (id: string, updates: Partial<QuestionTypeModel>) => set((state) => ({
+    survey: {
+      ...state.survey,
+      questions: state.survey.questions.map((q) =>
+        q.id === id ? { ...q, ...updates } : q
+      )
     }
   })),
   updateSurvey: (updates: Partial<Survey>) => set((state) => ({

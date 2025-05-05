@@ -1,8 +1,8 @@
 export enum QuestionType {
-  RADIO = 'radio',
-  CHECKBOX = 'checkbox',
-  SHORT_ANSWER = 'short_answer',
-  LONG_ANSWER = 'long_answer'
+  RADIO = 'RADIO',
+  CHECKBOX = 'CHECKBOX',
+  SHORT_ANSWER = 'SHORT_ANSWER',
+  LONG_ANSWER = 'LONG_ANSWER',
 }
 
 export interface QuestionOption {
@@ -11,16 +11,23 @@ export interface QuestionOption {
   isCorrect?: boolean;
 }
 
-export interface Question {
+export type QuestionTypeModel = {
   id: string;
   type: QuestionType;
   questionText: string;
   options?: QuestionOption[];
-  answers?: QuestionAnswer[];
+  answer?: string;
+  answers?: string[];
+  correctAnswer?: string;
+  correctAnswers?: string[];
   required?: boolean;
-  minLength?: number;
   maxLength?: number;
-}
+  minLength?: number;
+  maxValue?: number;
+  minValue?: number;
+  step?: number;
+  placeholder?: string;
+};
 
 export interface QuestionAnswer {
   id: string;
@@ -32,6 +39,6 @@ export interface QuestionAnswer {
 export interface Survey {
   id: string;
   title: string;
-  description?: string;
-  questions: Question[];
+  description: string;
+  questions: QuestionTypeModel[];
 }

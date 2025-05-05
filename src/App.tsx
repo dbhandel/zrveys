@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React from 'react';
 import { useSurveyStore } from './context/surveyStore';
 import { QuestionType } from './types/survey';
 import Question from './components/Question';
@@ -6,7 +6,6 @@ import QuestionForm from './components/QuestionForm';
 
 function App() {
   const { survey, addQuestion, removeQuestion, updateQuestion } = useSurveyStore();
-  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
 
   const handleAddQuestion = (question: { questionText: string; type: QuestionType }) => {
     addQuestion({
@@ -33,8 +32,6 @@ function App() {
             <Question
               key={question.id}
               question={question}
-              editingQuestionId={editingQuestionId}
-              setEditingQuestionId={setEditingQuestionId}
               updateQuestion={updateQuestion}
               removeQuestion={removeQuestion}
             />
