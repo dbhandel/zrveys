@@ -77,7 +77,7 @@ export const CreateSurvey: React.FC = () => {
           </div>
           <button
             onClick={handleLogout}
-            className="text-white hover:text-secondary transition-colors font-medium"
+            className="bg-secondary hover:bg-transparent text-white hover:text-secondary transition-colors font-medium px-4 py-2 rounded-lg"
           >
             Log out
           </button>
