@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSurveyStore } from './context/surveyStore';
 import { FaPlus } from 'react-icons/fa';
-import logo from './assets/logo.png';
+import logo from "./assets/new zrveys logo.png"; // corrected import statement
 import { QuestionType, QuestionTypeModel } from './types/survey';
 import Question from './components/Question';
 import {
@@ -71,14 +71,14 @@ function App() {
   return (
     <div className="min-h-screen w-screen overflow-x-hidden bg-primary flex flex-col">
       <header className="w-full bg-blue-700 py-4 shadow-lg">
-        <div className="w-full max-w-4xl mx-auto flex justify-between items-center">
-          <div className="text-white font-bold text-xl -ml-8">
-            <img src={logo} alt="Zrveys" className="h-20" />
+        <div className="w-full max-w-4xl mx-auto flex justify-between items-center px-4">
+          <div className="text-white font-bold text-xl">
+            <img src={logo} alt="Zrveys" className="h-16 sm:h-20" />
           </div>
-          <div className="space-x-4">
-            <button className="text-white hover:text-blue-200 transition-colors">Log in</button>
-            <button className="bg-white text-blue-700 px-4 py-2 rounded-md hover:bg-blue-50 transition-colors">Sign up</button>
-          </div>
+          <nav className="flex gap-6">
+            <button className="text-white bg-transparent border-none p-0 hover:text-blue-200 active:text-blue-300 transition-colors text-sm sm:text-base font-medium">Log in</button>
+            <button className="text-white bg-transparent border-none p-0 hover:text-blue-200 active:text-blue-300 transition-colors text-sm sm:text-base font-medium">Sign up</button>
+          </nav>
         </div>
       </header>
       <main className="flex-1 flex items-center justify-center w-full bg-primary overflow-x-hidden">
