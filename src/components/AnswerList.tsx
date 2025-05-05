@@ -21,7 +21,7 @@ import {
 
 interface AnswerListProps {
   question: QuestionTypeModel;
-  updateQuestion: (id: string, updates: Partial<QuestionTypeModel>) => void;
+  updateQuestion: (updates: Partial<QuestionTypeModel>) => void;
 }
 
 interface SortableAnswerProps {
@@ -50,7 +50,7 @@ const SortableAnswer: React.FC<SortableAnswerProps> = ({ option, index, question
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center space-x-4"
+      className="bg-white rounded-lg shadow-lg p-6 mb-4 relative w-full"
     >
       <div
         {...attributes}
@@ -68,12 +68,12 @@ const SortableAnswer: React.FC<SortableAnswerProps> = ({ option, index, question
         type="text"
         value={option.text === `Option ${index + 1}` ? '' : option.text}
         onChange={(e) => onUpdate(e.target.value || `Option ${index + 1}`)}
-        className="px-3 py-2 border rounded-md flex-1"
+        className="px-3 py-2 border rounded-md w-full focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
         placeholder={`Option ${index + 1}`}
       />
       <button
         onClick={onDelete}
-        className="text-gray-500 hover:text-red-500"
+        className="text-gray-500 hover:text-red-500 transition-colors"
       >
         <FaTrash />
       </button>
@@ -95,8 +95,20 @@ export default function AnswerList({ question, updateQuestion }: AnswerListProps
       const oldIndex = question.options.findIndex(o => o.id === active.id);
       const newIndex = question.options.findIndex(o => o.id === over.id);
       const newOptions = arrayMove(question.options, oldIndex, newIndex);
-      updateQuestion(question.id, { options: newOptions });
+      updateQuestion({ options: newOptions });
     }
+  };
+
+  const handleRemoveAnswer = (answerId: string) => {
+    updateQuestion({
+      options: question.options?.filter(a => a.id !== answerId)
+    });
+  };
+
+  const handleAddAnswer = () => {
+    updateQuestion({
+      options: [...(question.options || []), { id: crypto.randomUUID(), text: `Option ${(question.options || []).length + 1}` }]
+    });
   };
 
   // For OPEN_ENDED questions, show a preview of the input field
@@ -137,12 +149,9 @@ export default function AnswerList({ question, updateQuestion }: AnswerListProps
                 onUpdate={(text) => {
                   const newOptions = [...(question.options || [])]
                   newOptions[index] = { ...option, text };
-                  updateQuestion(question.id, { options: newOptions });
+                  updateQuestion({ options: newOptions });
                 }}
-                onDelete={() => {
-                  const newOptions = question.options?.filter(o => o.id !== option.id);
-                  updateQuestion(question.id, { options: newOptions });
-                }}
+                onDelete={() => handleRemoveAnswer(option.id)}
               />
             ))}
           </div>
@@ -150,14 +159,8 @@ export default function AnswerList({ question, updateQuestion }: AnswerListProps
       </DndContext>
       <div className="flex items-center space-x-2 mt-2">
         <button
-          onClick={() => {
-            const newIndex = (question.options?.length || 0) + 1;
-            const newOption = { id: crypto.randomUUID(), text: `Option ${newIndex}` };
-            updateQuestion(question.id, {
-              options: [...(question.options || []), newOption]
-            });
-          }}
-          className="text-secondary hover:text-secondary/80 flex items-center space-x-1"
+          onClick={handleAddAnswer}
+          className="text-secondary hover:text-secondary-light flex items-center space-x-1 transition-colors"
         >
           <span>+</span>
           <span>Add an answer ({10 - (question.options?.length || 0)} left)</span>

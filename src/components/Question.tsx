@@ -8,34 +8,34 @@ import { FaTrash } from 'react-icons/fa';
 
 interface QuestionProps {
   question: QuestionTypeModel;
-  updateQuestion: (id: string, updates: Partial<QuestionTypeModel>) => void;
-  removeQuestion: (id: string) => void;
+  onChange: (updates: Partial<QuestionTypeModel>) => void;
+  onRemove: () => void;
   index: number;
 }
 
 interface QuestionTypeMenuProps {
   question: QuestionTypeModel;
-  updateQuestion: (id: string, updates: Partial<QuestionTypeModel>) => void;
+  updateQuestion: (updates: Partial<QuestionTypeModel>) => void;
 }
 
 const QuestionTypeMenu: React.FC<QuestionTypeMenuProps> = ({ question, updateQuestion }) => {
   return (
     <div className="flex items-center space-x-2 mb-4">
       <button
-        onClick={() => updateQuestion(question.id, { type: QuestionType.RADIO })}
-        className={`px-3 py-1 rounded ${question.type === QuestionType.RADIO ? 'bg-secondary text-white' : 'bg-gray-200'}`}
+        onClick={() => updateQuestion({ type: QuestionType.RADIO })}
+        className={`px-3 py-1 rounded ${question.type === QuestionType.RADIO ? 'bg-secondary text-white' : 'bg-slate-200 hover:bg-slate-300'}`}
       >
         Radio
       </button>
       <button
-        onClick={() => updateQuestion(question.id, { type: QuestionType.CHECKBOX })}
-        className={`px-3 py-1 rounded ${question.type === QuestionType.CHECKBOX ? 'bg-secondary text-white' : 'bg-gray-200'}`}
+        onClick={() => updateQuestion({ type: QuestionType.CHECKBOX })}
+        className={`px-3 py-1 rounded ${question.type === QuestionType.CHECKBOX ? 'bg-secondary text-white' : 'bg-slate-200 hover:bg-slate-300'}`}
       >
         Checkbox
       </button>
       <button
-        onClick={() => updateQuestion(question.id, { type: QuestionType.OPEN_ENDED })}
-        className={`px-3 py-1 rounded ${question.type === QuestionType.OPEN_ENDED ? 'bg-secondary text-white' : 'bg-gray-200'}`}
+        onClick={() => updateQuestion({ type: QuestionType.OPEN_ENDED })}
+        className={`px-3 py-1 rounded ${question.type === QuestionType.OPEN_ENDED ? 'bg-secondary text-white' : 'bg-slate-200 hover:bg-slate-300'}`}
       >
         Open-ended
       </button>
@@ -45,8 +45,8 @@ const QuestionTypeMenu: React.FC<QuestionTypeMenuProps> = ({ question, updateQue
 
 export default function Question({
   question,
-  updateQuestion,
-  removeQuestion,
+  onChange,
+  onRemove,
   index,
 }: QuestionProps) {
 
@@ -70,7 +70,7 @@ export default function Question({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="bg-white rounded-lg shadow-lg p-6 mb-4 relative"
+      className="bg-white rounded-lg shadow-md p-6 mb-4 relative w-full"
       data-id={question.id}
     >
       <div className="flex items-center justify-between mb-4">
@@ -88,21 +88,21 @@ export default function Question({
           <input
             type="text"
             value={question.questionText === `Question ${index + 1}` ? '' : question.questionText}
-            onChange={(e) => updateQuestion(question.id, { questionText: e.target.value || `Question ${index + 1}` })}
+            onChange={(e) => onChange({ questionText: e.target.value || `Question ${index + 1}` })}
             className="px-3 py-2 border rounded-md flex-1"
             placeholder={`Question ${index + 1}`}
           />
         </div>
         <button
-          onClick={() => removeQuestion(question.id)}
+          onClick={onRemove}
           className="text-gray-500 hover:text-red-500"
         >
           <FaTrash />
         </button>
       </div>
 
-      <QuestionTypeMenu question={question} updateQuestion={updateQuestion} />
-      <AnswerList question={question} updateQuestion={updateQuestion} />
+      <QuestionTypeMenu question={question} updateQuestion={onChange} />
+      <AnswerList question={question} updateQuestion={onChange} />
     </motion.div>
   );
 }
