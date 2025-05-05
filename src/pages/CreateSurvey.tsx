@@ -23,6 +23,7 @@ import {
 import logo from "../assets/new zrveys logo.png";
 
 export const CreateSurvey: React.FC = () => {
+  const [respondents, setRespondents] = React.useState<number>(0);
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { survey, removeQuestion, updateQuestion, reorderQuestions, addQuestion } = useSurveyStore();
@@ -53,29 +54,6 @@ export const CreateSurvey: React.FC = () => {
     } catch (error) {
       console.error('Failed to log out:', error);
     }
-  };
-
-  const isQuestionValid = (question: QuestionTypeModel) => {
-    // Check if question text is empty or just the default text
-    if (!question.questionText.trim() || question.questionText.startsWith('Question ')) {
-      return false;
-    }
-    
-    // For open-ended questions, just need valid question text
-    if (question.type === QuestionType.OPEN_ENDED) {
-      return true;
-    }
-
-    // For Radio and Checkbox questions, need at least 2 non-empty options
-    const validOptions = (question.options || []).filter(option => 
-      option.text.trim() !== '' && option.text !== 'Option 1' && option.text !== 'Option 2'
-    );
-    return validOptions.length >= 2;
-  };
-
-  const isSurveyValid = () => {
-    // Need at least one question and all questions must be valid
-    return survey.questions.length > 0 && survey.questions.every(isQuestionValid);
   };
 
   const handleAddQuestion = () => {
@@ -150,15 +128,65 @@ export const CreateSurvey: React.FC = () => {
             Add Question
           </button>
 
-          <button
-            onClick={() => console.log('Launching survey...')}
-            disabled={!isSurveyValid()}
-            className={`mt-8 w-full py-4 rounded-lg text-white font-bold text-lg transition-colors ${!isSurveyValid() 
-              ? 'bg-gray-400 cursor-not-allowed' 
-              : 'bg-[#8C3375] hover:bg-[#732c60] cursor-pointer'}`}
-          >
-            Launch Survey
-          </button>
+          {/* Launch Controls */}
+          <div className="mt-8 flex flex-wrap justify-end gap-4">
+            <select
+              value={respondents}
+              onChange={(e) => setRespondents(parseInt(e.target.value))}
+              className="min-w-fit flex-grow max-w-[300px] py-4 px-4 rounded-lg bg-white border border-gray-300 text-gray-700 font-medium text-base"
+            >
+              <option value={0}>How many respondents would you like?</option>
+              {Array.from({length: 10}, (_, i) => i + 1).map(num => (
+                <option key={num} value={num}>{num} {num === 1 ? 'respondent' : 'respondents'}</option>
+              ))}
+            </select>
+
+            <button
+              onClick={() => console.log('Launching survey...')}
+              disabled={!survey.questions.some(q => {
+                // Check if question has non-default content
+                const hasQuestionContent = q.questionText && 
+                                         q.questionText.trim() !== '' && 
+                                         !q.questionText.startsWith('Question ');
+                
+                // For radio/checkbox, check if it has at least 2 answers with non-default content
+                if (q.type !== QuestionType.OPEN_ENDED) {
+                  const validAnswers = (q.options || []).filter(opt => 
+                    opt.text && 
+                    opt.text.trim() !== '' && 
+                    opt.text !== 'Option 1' && 
+                    opt.text !== 'Option 2'
+                  ).length;
+                  return hasQuestionContent && validAnswers >= 2;
+                }
+                
+                // For open-ended, just need non-default question content
+                return hasQuestionContent;
+              }) || respondents === 0}
+              className={`min-w-[120px] py-4 px-8 rounded-lg text-white font-bold text-base transition-colors ${(
+                !survey.questions.some(q => {
+                  const hasQuestionContent = q.questionText && 
+                                           q.questionText.trim() !== '' && 
+                                           !q.questionText.startsWith('Question ');
+                  if (q.type !== QuestionType.OPEN_ENDED) {
+                    const validAnswers = (q.options || []).filter(opt => 
+                      opt.text && 
+                      opt.text.trim() !== '' && 
+                      opt.text !== 'Option 1' && 
+                      opt.text !== 'Option 2'
+                    ).length;
+                    return hasQuestionContent && validAnswers >= 2;
+                  }
+                  return hasQuestionContent;
+                }) || respondents === 0
+              )
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-[#8C3375] hover:bg-[#732c60] cursor-pointer'
+              }`}
+            >
+              Launch Survey
+            </button>
+          </div>
         </div>
       </main>
     </div>
