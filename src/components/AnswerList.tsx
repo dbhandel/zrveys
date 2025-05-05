@@ -65,10 +65,10 @@ const SortableAnswer: React.FC<SortableAnswerProps> = ({ option, index, question
       />
       <input
         type="text"
-        value={option.text}
-        onChange={(e) => onUpdate(e.target.value)}
+        value={option.text === `Option ${index + 1}` ? '' : option.text}
+        onChange={(e) => onUpdate(e.target.value || `Option ${index + 1}`)}
         className="px-3 py-2 border rounded-md flex-1"
-        placeholder="Answer"
+        placeholder={`Option ${index + 1}`}
       />
       <button
         onClick={onDelete}
@@ -133,7 +133,8 @@ export default function AnswerList({ question, updateQuestion }: AnswerListProps
       <div className="flex items-center space-x-2 mt-2">
         <button
           onClick={() => {
-            const newOption = { id: crypto.randomUUID(), text: 'Answer' };
+            const newIndex = (question.options?.length || 0) + 1;
+            const newOption = { id: crypto.randomUUID(), text: `Option ${newIndex}` };
             updateQuestion(question.id, {
               options: [...(question.options || []), newOption]
             });

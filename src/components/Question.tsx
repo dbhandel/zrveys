@@ -92,10 +92,10 @@ export default function Question({
           <span className="text-gray-500">Q{question.questionText.replace('Question ', '')}</span>
           <input
             type="text"
-            value={question.questionText}
-            onChange={(e) => updateQuestion(question.id, { questionText: e.target.value })}
+            value={question.questionText === `Question ${index + 1}` ? '' : question.questionText}
+            onChange={(e) => updateQuestion(question.id, { questionText: e.target.value || `Question ${index + 1}` })}
             className="px-3 py-2 border rounded-md flex-1"
-            placeholder="Enter your question"
+            placeholder={`Question ${index + 1}`}
           />
         </div>
         <button

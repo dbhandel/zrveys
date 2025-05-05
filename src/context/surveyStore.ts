@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { Survey, QuestionTypeModel, QuestionType } from '../types/survey';
 
 interface SurveyStore {
@@ -11,7 +12,9 @@ interface SurveyStore {
   reorderQuestions: (questions: QuestionTypeModel[]) => void;
 }
 
-export const useSurveyStore = create<SurveyStore>((set) => ({
+export const useSurveyStore = create(
+  persist<SurveyStore>(
+    (set) => ({
   survey: {
     id: crypto.randomUUID(),
     title: 'New Survey',
@@ -77,4 +80,10 @@ export const useSurveyStore = create<SurveyStore>((set) => ({
       questions
     }
   }))
-}));
+    }),
+    {
+      name: 'survey-storage',
+      storage: createJSONStorage(() => localStorage),
+    }
+  )
+);
