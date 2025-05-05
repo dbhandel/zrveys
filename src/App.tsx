@@ -1,5 +1,7 @@
 import React from 'react';
 import { useSurveyStore } from './context/surveyStore';
+import { FaPlus } from 'react-icons/fa';
+import { QuestionType, QuestionTypeModel } from './types/survey';
 import Question from './components/Question';
 import {
   DndContext,
@@ -18,7 +20,7 @@ import {
 } from '@dnd-kit/sortable';
 
 function App() {
-  const { survey, removeQuestion, updateQuestion, reorderQuestions } = useSurveyStore();
+  const { survey, removeQuestion, updateQuestion, reorderQuestions, addQuestion } = useSurveyStore();
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -63,6 +65,25 @@ function App() {
                   index={index}
                 />
               ))}
+            </div>
+            <div
+              role="button"
+              onClick={() => {
+                const newQuestion: QuestionTypeModel = {
+                  id: crypto.randomUUID(),
+                  type: QuestionType.RADIO,
+                  questionText: `Question ${survey.questions.length + 1}`,
+                  options: [
+                    { id: crypto.randomUUID(), text: 'Option 1' },
+                    { id: crypto.randomUUID(), text: 'Option 2' }
+                  ]
+                };
+                addQuestion(newQuestion);
+              }}
+              className="mt-6 flex items-center space-x-2 text-white/80 hover:text-white cursor-pointer transition-colors"
+            >
+              <FaPlus className="text-lg" />
+              <span className="text-lg">Add question</span>
             </div>
           </SortableContext>
         </DndContext>

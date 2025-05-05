@@ -1,4 +1,5 @@
 import React from 'react';
+import { FaTrash } from 'react-icons/fa';
 import { QuestionType, QuestionTypeModel } from '../types/survey';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -74,7 +75,7 @@ const SortableAnswer: React.FC<SortableAnswerProps> = ({ option, index, question
         onClick={onDelete}
         className="text-gray-500 hover:text-red-500"
       >
-        Delete
+        <FaTrash />
       </button>
     </div>
   );
@@ -98,6 +99,23 @@ export default function AnswerList({ question, updateQuestion }: AnswerListProps
     }
   };
 
+  // For OPEN_ENDED questions, show a preview of the input field
+  if (question.type === QuestionType.OPEN_ENDED) {
+    return (
+      <div className="mt-4">
+        <div className="bg-gray-50 border rounded-md p-4">
+          <input
+            type="text"
+            disabled
+            placeholder="Respondent's answer will appear here"
+            className="w-full px-3 py-2 border rounded-md bg-white/50 text-gray-400"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // For RADIO and CHECKBOX questions, show the options list
   return (
     <>
       <DndContext
@@ -117,7 +135,7 @@ export default function AnswerList({ question, updateQuestion }: AnswerListProps
                 index={index}
                 questionType={question.type}
                 onUpdate={(text) => {
-                  const newOptions = [...(question.options || [])];
+                  const newOptions = [...(question.options || [])]
                   newOptions[index] = { ...option, text };
                   updateQuestion(question.id, { options: newOptions });
                 }}

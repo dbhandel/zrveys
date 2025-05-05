@@ -28,21 +28,6 @@ export const useSurveyStore = create(
           { id: crypto.randomUUID(), text: 'Option 1' },
           { id: crypto.randomUUID(), text: 'Option 2' }
         ]
-      },
-      {
-        id: crypto.randomUUID(),
-        type: QuestionType.CHECKBOX,
-        questionText: 'Question 2',
-        options: [
-          { id: crypto.randomUUID(), text: 'Option 1' },
-          { id: crypto.randomUUID(), text: 'Option 2' }
-        ]
-      },
-      {
-        id: crypto.randomUUID(),
-        type: QuestionType.SHORT_ANSWER,
-        questionText: 'Question 3',
-        placeholder: 'Enter your answer'
       }
     ]
   },

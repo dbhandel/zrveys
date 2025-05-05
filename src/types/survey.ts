@@ -1,8 +1,7 @@
 export enum QuestionType {
   RADIO = 'RADIO',
   CHECKBOX = 'CHECKBOX',
-  SHORT_ANSWER = 'SHORT_ANSWER',
-  LONG_ANSWER = 'LONG_ANSWER',
+  OPEN_ENDED = 'OPEN_ENDED'
 }
 
 export interface QuestionOption {

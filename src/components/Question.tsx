@@ -4,6 +4,7 @@ import { QuestionType, QuestionTypeModel } from '../types/survey';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import AnswerList from './AnswerList';
+import { FaTrash } from 'react-icons/fa';
 
 interface QuestionProps {
   question: QuestionTypeModel;
@@ -33,16 +34,10 @@ const QuestionTypeMenu: React.FC<QuestionTypeMenuProps> = ({ question, updateQue
         Checkbox
       </button>
       <button
-        onClick={() => updateQuestion(question.id, { type: QuestionType.SHORT_ANSWER })}
-        className={`px-3 py-1 rounded ${question.type === QuestionType.SHORT_ANSWER ? 'bg-secondary text-white' : 'bg-gray-200'}`}
+        onClick={() => updateQuestion(question.id, { type: QuestionType.OPEN_ENDED })}
+        className={`px-3 py-1 rounded ${question.type === QuestionType.OPEN_ENDED ? 'bg-secondary text-white' : 'bg-gray-200'}`}
       >
-        Short Answer
-      </button>
-      <button
-        onClick={() => updateQuestion(question.id, { type: QuestionType.LONG_ANSWER })}
-        className={`px-3 py-1 rounded ${question.type === QuestionType.LONG_ANSWER ? 'bg-secondary text-white' : 'bg-gray-200'}`}
-      >
-        Long Answer
+        Open-ended
       </button>
     </div>
   );
@@ -89,7 +84,6 @@ export default function Question({
           <div className="bg-blue-50 text-blue-600 w-8 h-8 flex items-center justify-center rounded">
             Q{index + 1}
           </div>
-          <span className="text-gray-500">Q{question.questionText.replace('Question ', '')}</span>
           <input
             type="text"
             value={question.questionText === `Question ${index + 1}` ? '' : question.questionText}
@@ -102,7 +96,7 @@ export default function Question({
           onClick={() => removeQuestion(question.id)}
           className="text-gray-500 hover:text-red-500"
         >
-          Delete
+          <FaTrash />
         </button>
       </div>
 
