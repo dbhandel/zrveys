@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSurveyStore } from './context/surveyStore';
+import { useAuth } from './context/authContext';
 import { FaPlus } from 'react-icons/fa';
-import logo from "./assets/new zrveys logo.png"; // corrected import statement
+import logo from "./assets/new zrveys logo.png";
+import { GoogleSignIn } from './components/auth/GoogleSignIn';
+import { Modal } from './components/common/Modal';
 import { QuestionType, QuestionTypeModel } from './types/survey';
 import Question from './components/Question';
 import {
@@ -22,6 +25,23 @@ import {
 } from '@dnd-kit/sortable';
 
 function App() {
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const { currentUser, logout } = useAuth();
+
+  // Close the auth modal when user signs in
+  useEffect(() => {
+    if (currentUser) {
+      setShowAuthModal(false);
+    }
+  }, [currentUser]);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Failed to log out:', error);
+    }
+  };
   const { survey, removeQuestion, updateQuestion, reorderQuestions, addQuestion } = useSurveyStore();
   const [dropLine, setDropLine] = React.useState<{ y: number } | null>(null);
   const questionsContainerRef = React.useRef<HTMLDivElement>(null);
@@ -76,8 +96,21 @@ function App() {
             <img src={logo} alt="Zrveys" className="h-16 sm:h-20" />
           </div>
           <nav className="flex gap-6">
-            <button className="text-white bg-transparent border-none p-0 hover:text-blue-200 active:text-blue-300 transition-colors text-sm sm:text-base font-medium">Log in</button>
-            <button className="text-white bg-transparent border-none p-0 hover:text-blue-200 active:text-blue-300 transition-colors text-sm sm:text-base font-medium">Sign up</button>
+            {currentUser ? (
+              <button
+                onClick={handleLogout}
+                className="text-white bg-transparent border-none p-0 hover:text-blue-200 active:text-blue-300 transition-colors text-sm sm:text-base font-medium"
+              >
+                Log out
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="text-white bg-transparent border-none p-0 hover:text-blue-200 active:text-blue-300 transition-colors text-sm sm:text-base font-medium"
+              >
+                Sign in
+              </button>
+            )}
           </nav>
         </div>
       </header>
@@ -146,6 +179,9 @@ function App() {
         </DndContext>
         </div>
       </main>
+      <Modal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} title="Sign in to Zrveys">
+        <GoogleSignIn />
+      </Modal>
     </div>
   );
 }
