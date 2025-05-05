@@ -16,9 +16,17 @@ export interface Question {
   type: QuestionType;
   questionText: string;
   options?: QuestionOption[];
+  answers?: QuestionAnswer[];
   required?: boolean;
   minLength?: number;
   maxLength?: number;
+}
+
+export interface QuestionAnswer {
+  id: string;
+  text: string;
+  userId: string;
+  timestamp: Date;
 }
 
 export interface Survey {
