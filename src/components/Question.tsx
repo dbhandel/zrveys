@@ -71,6 +71,7 @@ export default function Question({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       className="bg-white rounded-lg shadow p-6 mb-4 relative"
+      data-id={question.id}
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-4">

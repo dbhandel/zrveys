@@ -11,6 +11,7 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragMoveEvent,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -21,6 +22,8 @@ import {
 
 function App() {
   const { survey, removeQuestion, updateQuestion, reorderQuestions, addQuestion } = useSurveyStore();
+  const [dropLine, setDropLine] = React.useState<{ y: number } | null>(null);
+  const questionsContainerRef = React.useRef<HTMLDivElement>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -29,8 +32,31 @@ function App() {
     })
   );
 
+  const handleDragStart = () => {
+    setDropLine(null);
+  };
+
+  const handleDragMove = (event: DragMoveEvent) => {
+    if (!event.active || !questionsContainerRef.current) {
+      setDropLine(null);
+      return;
+    }
+
+    const containerRect = questionsContainerRef.current.getBoundingClientRect();
+    const y = event.delta.y + (event.active.rect.current?.translated?.top || 0) + ((event.active.rect.current?.translated?.height || 0) / 2);
+
+    // Constrain the line position between the container bounds
+    const constrainedY = Math.max(
+      containerRect.top,
+      Math.min(y, containerRect.bottom)
+    );
+
+    setDropLine({ y: constrainedY });
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    setDropLine(null);
     
     if (over && active.id !== over.id) {
       const oldIndex = survey.questions.findIndex(q => q.id === active.id);
@@ -49,13 +75,31 @@ function App() {
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragMove={handleDragMove}
           onDragEnd={handleDragEnd}
         >
           <SortableContext
             items={survey.questions.map(q => q.id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="space-y-6">
+            {dropLine && (
+              <div
+                style={{
+                  position: 'fixed',
+                  left: 0,
+                  top: dropLine.y,
+                  width: '100%',
+                  height: '2px',
+                  backgroundColor: '#3b82f6',
+                  zIndex: 1000,
+                  pointerEvents: 'none',
+                  transform: 'translateY(-50%)',
+                  transition: 'all 0ms linear'
+                }}
+              />
+            )}
+            <div ref={questionsContainerRef} className="space-y-6 py-2">
               {survey.questions.map((question, index) => (
                 <Question
                   key={question.id}
