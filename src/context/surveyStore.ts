@@ -8,6 +8,7 @@ interface SurveyStore {
   updateQuestion: (id: string, updates: Partial<QuestionTypeModel>) => void;
   updateSurvey: (updates: Partial<Survey>) => void;
   clearSurvey: () => void;
+  reorderQuestions: (questions: QuestionTypeModel[]) => void;
 }
 
 export const useSurveyStore = create<SurveyStore>((set) => ({
@@ -69,5 +70,11 @@ export const useSurveyStore = create<SurveyStore>((set) => ({
       description: '',
       questions: []
     }
-  })
+  }),
+  reorderQuestions: (questions: QuestionTypeModel[]) => set((state) => ({
+    survey: {
+      ...state.survey,
+      questions
+    }
+  }))
 }));

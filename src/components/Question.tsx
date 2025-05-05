@@ -1,11 +1,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { QuestionType, QuestionTypeModel } from '../types/survey';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import AnswerList from './AnswerList';
 
 interface QuestionProps {
   question: QuestionTypeModel;
   updateQuestion: (id: string, updates: Partial<QuestionTypeModel>) => void;
   removeQuestion: (id: string) => void;
+  index: number;
 }
 
 interface QuestionTypeMenuProps {
@@ -48,17 +52,43 @@ export default function Question({
   question,
   updateQuestion,
   removeQuestion,
+  index,
 }: QuestionProps) {
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: question.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
 
   return (
     <motion.div
+      ref={setNodeRef}
+      style={style}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="bg-white rounded-lg shadow p-6 mb-4"
+      className="bg-white rounded-lg shadow p-6 mb-4 relative"
     >
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-4">
+          <div 
+            {...attributes} 
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing w-8 h-8 flex items-center justify-center bg-gray-100 rounded hover:bg-gray-200"
+          >
+            ⋮⋮
+          </div>
+          <div className="bg-blue-50 text-blue-600 w-8 h-8 flex items-center justify-center rounded">
+            Q{index + 1}
+          </div>
           <span className="text-gray-500">Q{question.questionText.replace('Question ', '')}</span>
           <input
             type="text"
@@ -77,52 +107,7 @@ export default function Question({
       </div>
 
       <QuestionTypeMenu question={question} updateQuestion={updateQuestion} />
-
-      <div className="space-y-2">
-        {question.options?.map((option, index) => (
-          <div key={option.id} className="flex items-center space-x-2">
-            <span className="text-gray-500">{index + 1}</span>
-            <input
-              type={question.type === QuestionType.RADIO ? 'radio' : 'checkbox'}
-              disabled
-            />
-            <input
-              type="text"
-              value={option.text}
-              onChange={(e) => {
-                const newOptions = [...(question.options || [])];
-                newOptions[index] = { ...option, text: e.target.value };
-                updateQuestion(question.id, { options: newOptions });
-              }}
-              className="px-3 py-2 border rounded-md flex-1"
-              placeholder="Answer"
-            />
-            <button
-              onClick={() => {
-                const newOptions = question.options?.filter(o => o.id !== option.id);
-                updateQuestion(question.id, { options: newOptions });
-              }}
-              className="text-gray-500 hover:text-red-500"
-            >
-              Delete
-            </button>
-          </div>
-        ))}
-        <div className="flex items-center space-x-2 mt-2">
-          <button
-            onClick={() => {
-              const newOption = { id: crypto.randomUUID(), text: 'Answer' };
-              updateQuestion(question.id, {
-                options: [...(question.options || []), newOption]
-              });
-            }}
-            className="text-secondary hover:text-secondary/80 flex items-center space-x-1"
-          >
-            <span>+</span>
-            <span>Add an answer ({10 - (question.options?.length || 0)} left)</span>
-          </button>
-        </div>
-      </div>
+      <AnswerList question={question} updateQuestion={updateQuestion} />
     </motion.div>
   );
 }
