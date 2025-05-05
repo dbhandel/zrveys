@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { QuestionType, Question as QuestionTypeModel, QuestionOption, QuestionAnswer } from '../types/survey';
 import { motion } from 'framer-motion';
+import { theme } from '../styles/theme';
 
 interface QuestionProps {
   question: QuestionTypeModel;
@@ -66,7 +67,13 @@ export default function Question({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="bg-white rounded-lg shadow-md p-6 mb-6"
+      style={{
+        backgroundColor: theme.colors.white,
+        borderRadius: '0.5rem',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        padding: '1.5rem',
+        marginBottom: '1.5rem',
+      }}
     >
       <div className="flex justify-between items-start mb-4">
         <h3 className="text-lg font-semibold">{question.questionText}</h3>
@@ -80,7 +87,7 @@ export default function Question({
         ) : (
           <button
             onClick={() => setEditingQuestionId(question.id)}
-            className="text-blue-600 hover:text-blue-800"
+            style={{ color: theme.colors.accent, cursor: 'pointer' }}
           >
             Edit
           </button>
@@ -219,7 +226,14 @@ export default function Question({
           </button>
           <button
             onClick={() => removeQuestion(question.id)}
-            className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+            style={{
+            padding: '0.25rem 0.75rem',
+            fontSize: '0.875rem',
+            backgroundColor: theme.colors.secondary,
+            color: theme.colors.white,
+            borderRadius: '0.375rem',
+            cursor: 'pointer'
+          }}
           >
             Delete
           </button>
