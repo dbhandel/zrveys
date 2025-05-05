@@ -68,8 +68,21 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-primary px-4 py-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen w-screen overflow-x-hidden bg-primary flex flex-col">
+      <header className="w-full bg-blue-700 py-4 px-4 shadow-lg">
+        <div className="w-full max-w-4xl mx-auto flex justify-between items-center">
+          <div className="text-white font-bold text-xl">
+            {/* Logo placeholder */}
+            Zrveys
+          </div>
+          <div className="space-x-4">
+            <button className="text-white hover:text-blue-200 transition-colors">Log in</button>
+            <button className="bg-white text-blue-700 px-4 py-2 rounded-md hover:bg-blue-50 transition-colors">Sign up</button>
+          </div>
+        </div>
+      </header>
+      <main className="flex-1 flex items-center justify-center w-full bg-primary overflow-x-hidden">
+        <div className="w-full max-w-[600px] mx-auto px-4">
         <h1 className="text-3xl font-bold text-center mb-8 text-white">Survey Builder</h1>
         
         <DndContext
@@ -131,7 +144,8 @@ function App() {
             </div>
           </SortableContext>
         </DndContext>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
