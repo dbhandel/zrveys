@@ -24,7 +24,7 @@ export const LandingPage: React.FC = () => {
   return (
     <div className="min-h-screen w-full bg-primary">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-primary/90 backdrop-blur">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#264F79] backdrop-blur">
         <div className="flex justify-between items-center p-4">
           <div>
             <img src={logo} alt="Zrveys" className="h-12" />

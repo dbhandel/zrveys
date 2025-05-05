@@ -32,15 +32,22 @@ body {
   width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
+  background-color: #1D2939;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
 #root {
   width: 100%;
-  max-width: 1024px;
-  margin: 0 auto;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: #1D2939;
 }
 
 h1 {
@@ -70,7 +77,9 @@ button:focus-visible {
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
-    background-color: #ffffff;
+  }
+  body, #root {
+    background-color: #1D2939;
   }
   a:hover {
     color: #747bff;

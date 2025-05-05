@@ -7,7 +7,7 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 const App: React.FC = () => {
   return (
-    <div className="min-h-screen w-full max-w-5xl mx-auto overflow-x-hidden">
+    <div className="app-container">
       <Router>
         <AuthProvider>
           <Routes>
