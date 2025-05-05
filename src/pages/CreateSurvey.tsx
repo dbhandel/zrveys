@@ -1,5 +1,6 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
+import { ShareSurveyModal } from "../components/ShareSurveyModal";
 import { useAuth } from '../context/authContext';
 import { useSurveyStore } from '../context/surveyStore';
 import Question from '../components/Question';
@@ -24,6 +25,8 @@ import logo from "../assets/new zrveys logo.png";
 
 export const CreateSurvey: React.FC = () => {
   const [respondents, setRespondents] = React.useState<number>(0);
+  const [isShareModalOpen, setIsShareModalOpen] = React.useState(false);
+  const [launchedSurveyId, setLaunchedSurveyId] = React.useState<string>('');
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { survey, removeQuestion, updateQuestion, reorderQuestions, addQuestion } = useSurveyStore();
@@ -142,7 +145,12 @@ export const CreateSurvey: React.FC = () => {
             </select>
 
             <button
-              onClick={() => console.log('Launching survey...')}
+              onClick={() => {
+                // In a real app, we'd save the survey to the backend here
+                const newSurveyId = crypto.randomUUID(); // This would come from the backend
+                setLaunchedSurveyId(newSurveyId);
+                setIsShareModalOpen(true);
+              }}
               disabled={!survey.questions.some(q => {
                 // Check if question has non-default content
                 const hasQuestionContent = q.questionText && 
@@ -187,6 +195,13 @@ export const CreateSurvey: React.FC = () => {
               Launch Survey
             </button>
           </div>
+
+          {/* Share Survey Modal */}
+          <ShareSurveyModal
+            isOpen={isShareModalOpen}
+            onClose={() => setIsShareModalOpen(false)}
+            surveyId={launchedSurveyId}
+          />
         </div>
       </main>
     </div>
