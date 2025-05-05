@@ -12,12 +12,12 @@ export const LandingPage: React.FC = () => {
     if (!currentUser) {
       try {
         await signInWithGoogle();
-        // Will redirect after auth state changes
+        navigate('/dashboard');
       } catch (error) {
         console.error('Failed to sign in:', error);
       }
     } else {
-      navigate('/create');
+      navigate('/dashboard');
     }
   };
 
@@ -29,12 +29,22 @@ export const LandingPage: React.FC = () => {
           <div>
             <img src={logo} alt="Zrveys" className="h-12" />
           </div>
-          <button
-            onClick={handleGetStarted}
-            className="bg-secondary hover:bg-secondary-dark text-white font-bold py-3 px-8 rounded-lg transition-colors"
-          >
-            {currentUser ? 'Create Survey' : 'Get Started'}
-          </button>
+          <div className="flex gap-4">
+            {currentUser && (
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 rounded-lg transition-colors"
+              >
+                Dashboard
+              </button>
+            )}
+            <button
+              onClick={handleGetStarted}
+              className="bg-secondary hover:bg-secondary-dark text-white font-bold py-3 px-8 rounded-lg transition-colors"
+            >
+              {currentUser ? 'Create Survey' : 'Get Started'}
+            </button>
+          </div>
         </div>
       </header>
 

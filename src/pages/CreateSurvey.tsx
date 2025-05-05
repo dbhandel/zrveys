@@ -55,6 +55,29 @@ export const CreateSurvey: React.FC = () => {
     }
   };
 
+  const isQuestionValid = (question: QuestionTypeModel) => {
+    // Check if question text is empty or just the default text
+    if (!question.questionText.trim() || question.questionText.startsWith('Question ')) {
+      return false;
+    }
+    
+    // For open-ended questions, just need valid question text
+    if (question.type === QuestionType.OPEN_ENDED) {
+      return true;
+    }
+
+    // For Radio and Checkbox questions, need at least 2 non-empty options
+    const validOptions = (question.options || []).filter(option => 
+      option.text.trim() !== '' && option.text !== 'Option 1' && option.text !== 'Option 2'
+    );
+    return validOptions.length >= 2;
+  };
+
+  const isSurveyValid = () => {
+    // Need at least one question and all questions must be valid
+    return survey.questions.length > 0 && survey.questions.every(isQuestionValid);
+  };
+
   const handleAddQuestion = () => {
     const newQuestion: QuestionTypeModel = {
       id: crypto.randomUUID(),
@@ -70,17 +93,25 @@ export const CreateSurvey: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full bg-primary flex flex-col items-center">
-      <header className="w-full bg-primary shadow-lg">
+      <header className="w-full bg-[#264F79] shadow-lg">
         <div className="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
           <div>
             <img src={logo} alt="Zrveys" className="h-12" />
           </div>
-          <button
-            onClick={handleLogout}
-            className="bg-secondary hover:bg-transparent text-white hover:text-secondary transition-colors font-medium px-4 py-2 rounded-lg"
-          >
-            Log out
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="bg-[#8C3375] hover:bg-[#732c60] text-white font-bold py-2 px-6 rounded-lg transition-colors"
+            >
+              Dashboard
+            </button>
+            <button
+              onClick={handleLogout}
+              className="bg-[#8C3375] hover:bg-[#732c60] text-white font-bold py-2 px-6 rounded-lg transition-colors"
+            >
+              Log out
+            </button>
+          </div>
         </div>
       </header>
 
@@ -117,6 +148,16 @@ export const CreateSurvey: React.FC = () => {
           >
             <FaPlus />
             Add Question
+          </button>
+
+          <button
+            onClick={() => console.log('Launching survey...')}
+            disabled={!isSurveyValid()}
+            className={`mt-8 w-full py-4 rounded-lg text-white font-bold text-lg transition-colors ${!isSurveyValid() 
+              ? 'bg-gray-400 cursor-not-allowed' 
+              : 'bg-[#8C3375] hover:bg-[#732c60] cursor-pointer'}`}
+          >
+            Launch Survey
           </button>
         </div>
       </main>

@@ -3,7 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/authContext';
 import { LandingPage } from './pages/LandingPage';
 import { CreateSurvey } from './pages/CreateSurvey';
+import Dashboard from './pages/Dashboard';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { RequireNoAuth } from './components/auth/RequireNoAuth';
 
 const App: React.FC = () => {
   return (
@@ -11,7 +13,22 @@ const App: React.FC = () => {
       <Router>
         <AuthProvider>
           <Routes>
-            <Route path="/" element={<LandingPage />} />
+            <Route
+              path="/"
+              element={
+                <RequireNoAuth>
+                  <LandingPage />
+                </RequireNoAuth>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/create"
               element={
