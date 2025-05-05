@@ -123,7 +123,7 @@ export const LandingPage: React.FC = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 w-full">
             <div className="bg-slate-700/50 rounded-lg p-6">
-              <div className="text-blue-500 text-2xl font-bold mb-4">1</div>
+              <div className="text-secondary text-2xl font-bold mb-4">1</div>
               <h3 className="text-xl font-semibold text-white mb-4">
                 Sign Up
               </h3>
@@ -132,7 +132,7 @@ export const LandingPage: React.FC = () => {
               </p>
             </div>
             <div className="bg-slate-700/50 rounded-lg p-6">
-              <div className="text-blue-500 text-2xl font-bold mb-4">2</div>
+              <div className="text-secondary text-2xl font-bold mb-4">2</div>
               <h3 className="text-xl font-semibold text-white mb-4">
                 Create Your Survey
               </h3>
@@ -141,7 +141,7 @@ export const LandingPage: React.FC = () => {
               </p>
             </div>
             <div className="bg-slate-700/50 rounded-lg p-6">
-              <div className="text-blue-500 text-2xl font-bold mb-4">3</div>
+              <div className="text-secondary text-2xl font-bold mb-4">3</div>
               <h3 className="text-xl font-semibold text-white mb-4">
                 Share & Analyze
               </h3>
@@ -161,7 +161,7 @@ export const LandingPage: React.FC = () => {
           </h2>
           <button
             onClick={handleGetStarted}
-            className="px-8 py-4 bg-blue-600 text-white text-lg rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-8 py-4 bg-secondary text-white text-lg rounded-lg hover:bg-secondary-dark transition-colors"
           >
             Get Started Now
           </button>

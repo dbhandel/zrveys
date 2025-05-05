@@ -82,7 +82,7 @@ export default function Question({
           >
             ⋮⋮
           </div>
-          <div className="bg-blue-50 text-blue-600 w-8 h-8 flex items-center justify-center rounded">
+          <div className="bg-secondary/10 text-secondary w-8 h-8 flex items-center justify-center rounded">
             Q{index + 1}
           </div>
           <input
