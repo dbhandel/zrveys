@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSurveyStore } from './context/surveyStore';
 import { FaPlus } from 'react-icons/fa';
+import logo from './assets/logo.png';
 import { QuestionType, QuestionTypeModel } from './types/survey';
 import Question from './components/Question';
 import {
@@ -69,11 +70,10 @@ function App() {
 
   return (
     <div className="min-h-screen w-screen overflow-x-hidden bg-primary flex flex-col">
-      <header className="w-full bg-blue-700 py-4 px-4 shadow-lg">
+      <header className="w-full bg-blue-700 py-4 shadow-lg">
         <div className="w-full max-w-4xl mx-auto flex justify-between items-center">
-          <div className="text-white font-bold text-xl">
-            {/* Logo placeholder */}
-            Zrveys
+          <div className="text-white font-bold text-xl -ml-8">
+            <img src={logo} alt="Zrveys" className="h-20" />
           </div>
           <div className="space-x-4">
             <button className="text-white hover:text-blue-200 transition-colors">Log in</button>
