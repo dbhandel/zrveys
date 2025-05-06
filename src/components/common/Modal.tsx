@@ -8,25 +8,37 @@ interface ModalProps {
 }
 
 export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
+  console.log('Modal rendering with:', { isOpen, hasTitle: !!title });
+
   useEffect(() => {
+    console.log('Modal effect running, isOpen:', isOpen);
+    
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        console.log('Escape key pressed, closing modal');
         onClose();
       }
     };
 
     if (isOpen) {
+      console.log('Modal opened, adding event listeners');
       document.addEventListener('keydown', handleEscape);
       document.body.style.overflow = 'hidden';
     }
 
     return () => {
+      console.log('Modal cleanup, removing event listeners');
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    console.log('Modal not open, returning null');
+    return null;
+  }
+
+  console.log('Modal rendering content');
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">

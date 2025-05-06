@@ -1,9 +1,10 @@
 import React from 'react';
 import { useNavigate } from "react-router-dom";
-import { ShareSurveyModal } from "../components/ShareSurveyModal";
+import { ShareSurveyModal } from "../components/survey/ShareSurveyModal";
 import { useAuth } from '../context/authContext';
+import { auth } from '../config/firebase';
 import { useSurveyStore } from '../context/surveyStore';
-import { surveyService } from '../services/surveyService';
+import { surveyService } from '../services/surveyService.ts';
 import Question from '../components/Question';
 import { QuestionType, QuestionTypeModel } from '../types/survey';
 import { FaPlus } from 'react-icons/fa';
@@ -146,18 +147,45 @@ export const CreateSurvey: React.FC = () => {
             </select>
 
             <button
-              onClick={() => {
+              type="button"
+              onClick={async () => {
                 try {
-                  const newSurveyId = surveyService.createSurvey(
+                  console.log('Current auth state:', { 
+                    currentUser: auth.currentUser,
+                    uid: auth.currentUser?.uid,
+                    isAnonymous: auth.currentUser?.isAnonymous
+                  });
+                  
+                  if (!auth.currentUser) {
+                    console.error('Not authenticated');
+                    alert('Please log in to create a survey');
+                    return;
+                  }
+                  
+                  console.log('Creating survey with data:', {
+                    title: survey.title || 'Survey',
+                    questionCount: survey.questions.length,
+                    respondents
+                  });
+                  
+                  const newSurveyId = await surveyService.createSurvey(
                     survey.title || 'Survey',
                     survey.questions,
                     respondents
                   );
                   
+                  console.log('Survey created successfully with ID:', newSurveyId);
                   setLaunchedSurveyId(newSurveyId);
+                  console.log('Opening share modal for survey:', newSurveyId);
                   setIsShareModalOpen(true);
-                } catch (error) {
-                  console.error('Error creating survey:', error);
+                } catch (error: any) {
+                  console.error('Error creating survey:', {
+                    error,
+                    name: error.name,
+                    code: error.code,
+                    message: error.message
+                  });
+                  alert(`Failed to create survey: ${error.message}`);
                 }
               }}
               disabled={!survey.questions.some(q => {

@@ -1,5 +1,6 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { startTransition, useEffect } from 'react';
 import { AuthProvider } from './context/authContext';
 import { LandingPage } from './pages/LandingPage';
 import { CreateSurvey } from "./pages/CreateSurvey";
@@ -8,29 +9,41 @@ import Dashboard from './pages/Dashboard';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { RequireNoAuth } from './components/auth/RequireNoAuth';
 
-const App: React.FC = () => {
+function AppContent() {
+  const location = useLocation();
+
+  useEffect(() => {
+    startTransition(() => {});
+  }, [location]);
+
+  return (
+    <AuthProvider>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <RequireNoAuth>
+              <LandingPage />
+            </RequireNoAuth>
+          }
+        />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/create" element={<ProtectedRoute><CreateSurvey /></ProtectedRoute>} />
+        <Route path="/survey/:surveyId" element={<TakeSurvey />} />
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </AuthProvider>
+  );
+}
+
+function App() {
   return (
     <div className="app-container">
       <Router>
-        <AuthProvider>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <RequireNoAuth>
-                  <LandingPage />
-                </RequireNoAuth>
-              }
-            />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/create" element={<ProtectedRoute><CreateSurvey /></ProtectedRoute>} />
-            <Route path="/survey/:surveyId" element={<TakeSurvey />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </AuthProvider>
+        <AppContent />
       </Router>
     </div>
   );
-};
+}
 
 export default App;

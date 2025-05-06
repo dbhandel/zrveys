@@ -24,7 +24,7 @@ export const TakeSurvey: React.FC = () => {
           return;
         }
 
-        const surveyData = surveyService.getSurvey(surveyId);
+        const surveyData = await surveyService.getSurvey(surveyId);
         
         if (!surveyData) {
           setError('Survey not found');

@@ -13,8 +13,20 @@ export const ShareSurveyModal: React.FC<ShareSurveyModalProps> = ({
   onClose,
   surveyId
 }) => {
+  console.log('ShareSurveyModal rendered with:', { 
+    isOpen, 
+    surveyId,
+    windowLocation: window.location.origin
+  });
+  
   const [copied, setCopied] = useState(false);
   const surveyUrl = `${window.location.origin}/survey/${surveyId}`;
+  
+  React.useEffect(() => {
+    if (isOpen) {
+      console.log('ShareSurveyModal opened with URL:', surveyUrl);
+    }
+  }, [isOpen, surveyUrl]);
 
   const handleCopy = async () => {
     try {
