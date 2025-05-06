@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ShareSurveyModal } from "../components/ShareSurveyModal";
 import { useAuth } from '../context/authContext';
 import { useSurveyStore } from '../context/surveyStore';
+import { surveyService } from '../services/surveyService';
 import Question from '../components/Question';
 import { QuestionType, QuestionTypeModel } from '../types/survey';
 import { FaPlus } from 'react-icons/fa';
@@ -146,10 +147,18 @@ export const CreateSurvey: React.FC = () => {
 
             <button
               onClick={() => {
-                // In a real app, we'd save the survey to the backend here
-                const newSurveyId = crypto.randomUUID(); // This would come from the backend
-                setLaunchedSurveyId(newSurveyId);
-                setIsShareModalOpen(true);
+                try {
+                  const newSurveyId = surveyService.createSurvey(
+                    survey.title || 'Survey',
+                    survey.questions,
+                    respondents
+                  );
+                  
+                  setLaunchedSurveyId(newSurveyId);
+                  setIsShareModalOpen(true);
+                } catch (error) {
+                  console.error('Error creating survey:', error);
+                }
               }}
               disabled={!survey.questions.some(q => {
                 // Check if question has non-default content

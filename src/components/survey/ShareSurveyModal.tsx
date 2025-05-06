@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
+import { Modal } from '../common/Modal';
 import { FaCopy, FaCheck } from 'react-icons/fa';
-import { Modal } from './common/Modal';
 
 interface ShareSurveyModalProps {
   isOpen: boolean;
@@ -8,17 +8,21 @@ interface ShareSurveyModalProps {
   surveyId: string;
 }
 
-export const ShareSurveyModal: React.FC<ShareSurveyModalProps> = ({ isOpen, onClose, surveyId }) => {
+export const ShareSurveyModal: React.FC<ShareSurveyModalProps> = ({
+  isOpen,
+  onClose,
+  surveyId
+}) => {
   const [copied, setCopied] = useState(false);
   const surveyUrl = `${window.location.origin}/survey/${surveyId}`;
 
-  const copyToClipboard = async () => {
+  const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(surveyUrl);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
+      setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy:', err);
+      console.error('Failed to copy URL:', err);
     }
   };
 
@@ -38,7 +42,7 @@ export const ShareSurveyModal: React.FC<ShareSurveyModalProps> = ({ isOpen, onCl
             className="flex-1 px-3 py-2 border rounded-md bg-gray-50"
           />
           <button
-            onClick={copyToClipboard}
+            onClick={handleCopy}
             className="px-4 py-2 bg-secondary text-white rounded-md hover:bg-secondary/90 transition-colors flex items-center space-x-2"
           >
             {copied ? (
