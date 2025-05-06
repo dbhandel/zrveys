@@ -16,6 +16,8 @@ export const SurveyWidget: React.FC<SurveyWidgetProps> = ({ survey }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [response, setResponse] = useState<SurveyResponse | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [currentAnswer, setCurrentAnswer] = useState<string | string[]>('');
+  const [textInput, setTextInput] = useState('');
 
   useEffect(() => {
     // Check if user has already completed this survey
@@ -122,31 +124,54 @@ export const SurveyWidget: React.FC<SurveyWidgetProps> = ({ survey }) => {
 
       {/* Answer options */}
       <div className="space-y-4">
-        {currentQuestion.options?.map((option) => (
-          <div
-            key={option.id}
-            onClick={() => handleAnswer(option.text)}
-            className="flex items-center space-x-4 p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-          >
-            <input
-              type={currentQuestion.type === 'RADIO' ? 'radio' : 'checkbox'}
-              checked={response?.answers.some(
-                a => a.questionId === currentQuestion.id && 
-                (a.answer === option.text || a.answers?.includes(option.text))
-              )}
-              readOnly
-              className="text-secondary"
-            />
-            <span className="flex-1">{option.text}</span>
-            {option.image && (
-              <img
-                src={option.image}
-                alt="Answer option"
-                className="w-12 h-12 object-cover rounded"
+        {currentQuestion.type === 'OPEN_ENDED' ? (
+          <textarea
+            value={textInput}
+            onChange={(e) => {
+              setTextInput(e.target.value);
+              setCurrentAnswer(e.target.value);
+            }}
+            placeholder="Type your answer here..."
+            className="w-full p-4 border rounded-lg min-h-[120px] focus:outline-none focus:ring-2 focus:ring-secondary"
+          />
+        ) : (
+          currentQuestion.options?.map((option) => (
+            <div
+              key={option.id}
+              onClick={() => {
+                if (currentQuestion.type === 'RADIO') {
+                  setCurrentAnswer(option.text);
+                } else if (currentQuestion.type === 'CHECKBOX') {
+                  const currentAnswers = Array.isArray(currentAnswer) ? currentAnswer : [];
+                  const newAnswers = currentAnswers.includes(option.text)
+                    ? currentAnswers.filter(a => a !== option.text)
+                    : [...currentAnswers, option.text];
+                  setCurrentAnswer(newAnswers);
+                }
+              }}
+              className="flex items-center space-x-4 p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+            >
+              <input
+                type={currentQuestion.type === 'RADIO' ? 'radio' : 'checkbox'}
+                checked={
+                  currentQuestion.type === 'RADIO'
+                    ? currentAnswer === option.text
+                    : Array.isArray(currentAnswer) && currentAnswer.includes(option.text)
+                }
+                readOnly
+                className="text-secondary"
               />
-            )}
-          </div>
-        ))}
+              <span className="flex-1">{option.text}</span>
+              {option.image && (
+                <img
+                  src={option.image}
+                  alt="Answer option"
+                  className="w-12 h-12 object-cover rounded"
+                />
+              )}
+            </div>
+          ))
+        )}
       </div>
 
       {/* Navigation */}
@@ -154,18 +179,33 @@ export const SurveyWidget: React.FC<SurveyWidgetProps> = ({ survey }) => {
         <div className="text-sm text-gray-500">
           {currentQuestionIndex + 1} of {survey.questions.length}
         </div>
-        {currentQuestionIndex < survey.questions.length - 1 && (
+        {currentQuestionIndex < survey.questions.length - 1 ? (
           <button
-            className="px-6 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-colors"
-            onClick={() => handleAnswer('')} // Temporary for testing
+            className="px-6 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => {
+              if (currentQuestion.type === 'OPEN_ENDED') {
+                handleAnswer(textInput);
+                setTextInput('');
+              } else {
+                handleAnswer(currentAnswer);
+                setCurrentAnswer(currentQuestion.type === 'RADIO' ? '' : []);
+              }
+            }}
+            disabled={!currentAnswer || (Array.isArray(currentAnswer) && currentAnswer.length === 0)}
           >
             Next
           </button>
-        )}
-        {currentQuestionIndex === survey.questions.length - 1 && (
+        ) : (
           <button
-            className="px-6 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-colors"
-            onClick={() => handleAnswer('')} // Temporary for testing
+            className="px-6 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => {
+              if (currentQuestion.type === 'OPEN_ENDED') {
+                handleAnswer(textInput);
+              } else {
+                handleAnswer(currentAnswer);
+              }
+            }}
+            disabled={!currentAnswer || (Array.isArray(currentAnswer) && currentAnswer.length === 0)}
           >
             Submit
           </button>
