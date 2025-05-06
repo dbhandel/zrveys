@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { QuestionType, QuestionTypeModel } from '../types/survey';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import AnswerList from './AnswerList';
-import { FaTrash } from 'react-icons/fa';
+import { FaTrash, FaCamera, FaExpand } from 'react-icons/fa';
+import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { Modal } from './common/Modal';
 
 interface QuestionProps {
   question: QuestionTypeModel;
@@ -49,6 +51,8 @@ export default function Question({
   onRemove,
   index,
 }: QuestionProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
   const {
     attributes,
@@ -74,7 +78,7 @@ export default function Question({
       data-id={question.id}
     >
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 flex-1">
           <div 
             {...attributes} 
             {...listeners}
@@ -85,21 +89,96 @@ export default function Question({
           <div className="bg-secondary/10 text-secondary w-8 h-8 flex items-center justify-center rounded">
             Q{index + 1}
           </div>
-          <input
-            type="text"
-            value={question.questionText === `Question ${index + 1}` ? '' : question.questionText}
-            onChange={(e) => onChange({ questionText: e.target.value || `Question ${index + 1}` })}
-            className="px-3 py-2 border rounded-md flex-1"
-            placeholder={`Question ${index + 1}`}
-          />
+          <div className="flex-1 relative">
+            <input
+              type="text"
+              value={question.questionText === `Question ${index + 1}` ? '' : question.questionText}
+              onChange={(e) => onChange({ questionText: e.target.value || `Question ${index + 1}` })}
+              className="w-full px-3 py-2 border rounded-md pr-10"
+              placeholder={`Question ${index + 1}`}
+            />
+            <div className="absolute right-2 top-1/2 -translate-y-1/2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    onChange({ imageLoading: true });
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      onChange({
+                        image: reader.result as string,
+                        imageLoading: false
+                      });
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+              {question.image ? (
+                <div 
+                  className="w-6 h-6 cursor-pointer group"
+                  onClick={() => setIsImageModalOpen(true)}
+                >
+                  <img
+                    src={question.image}
+                    alt="Question"
+                    className="w-full h-full object-cover rounded"
+                  />
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center">
+                    <FaExpand className="text-white" size={12} />
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-gray-400 hover:text-secondary transition-colors"
+                  title="Add image"
+                >
+                  {question.imageLoading ? (
+                    <AiOutlineLoading3Quarters className="animate-spin" />
+                  ) : (
+                    <FaCamera size={14} />
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
         </div>
         <button
           onClick={onRemove}
-          className="text-gray-500 hover:text-red-500"
+          className="text-gray-500 hover:text-red-500 ml-2"
         >
           <FaTrash />
         </button>
       </div>
+
+      <Modal
+        isOpen={isImageModalOpen}
+        onClose={() => setIsImageModalOpen(false)}
+      >
+        {question.image && (
+          <div className="relative">
+            <img
+              src={question.image}
+              alt="Question"
+              className="w-full max-h-[80vh] object-contain rounded-lg"
+            />
+            <button
+              onClick={() => {
+                onChange({ image: undefined });
+                setIsImageModalOpen(false);
+              }}
+              className="absolute top-2 right-2 bg-white/80 hover:bg-white p-2 rounded-full text-red-500 transition-colors"
+            >
+              <FaTrash size={14} />
+            </button>
+          </div>
+        )}
+      </Modal>
 
       <QuestionTypeMenu question={question} updateQuestion={onChange} />
       <AnswerList question={question} updateQuestion={onChange} />

@@ -8,6 +8,8 @@ export interface QuestionOption {
   id: string;
   text: string;
   isCorrect?: boolean;
+  image?: string;
+  imageLoading?: boolean;
 }
 
 export type QuestionTypeModel = {
@@ -26,6 +28,8 @@ export type QuestionTypeModel = {
   minValue?: number;
   step?: number;
   placeholder?: string;
+  image?: string;
+  imageLoading?: boolean;
 };
 
 export interface QuestionAnswer {
