@@ -29,6 +29,7 @@ function AppContent() {
         />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/create" element={<ProtectedRoute><CreateSurvey /></ProtectedRoute>} />
+        <Route path="/create/:draftId" element={<ProtectedRoute><CreateSurvey /></ProtectedRoute>} />
         <Route path="/survey/:surveyId" element={<TakeSurvey />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

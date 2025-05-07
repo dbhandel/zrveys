@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
 import { surveyService } from '../services/surveyService';
 import Question from '../components/Question';
@@ -12,27 +12,55 @@ interface CreateSurveyState {
 }
 
 export const CreateSurvey: React.FC = () => {
+  const { draftId: urlDraftId } = useParams();
+
+  // Clear localStorage when creating a new survey
+  useEffect(() => {
+    if (!urlDraftId) {
+      localStorage.removeItem('survey_draft');
+      localStorage.removeItem('survey_draft_id');
+    }
+  }, [urlDraftId]);
+
+  const defaultSurvey = {
+    questions: [
+      {
+        id: crypto.randomUUID(),
+        type: 'RADIO' as QuestionType,
+        questionText: '',
+        options: [
+          { id: crypto.randomUUID(), text: '' },
+          { id: crypto.randomUUID(), text: '' }
+        ],
+      }
+    ],
+    title: '',
+  };
+
   const [survey, setSurvey] = useState<CreateSurveyState>(() => {
-    const saved = localStorage.getItem('survey_draft');
-    const defaultSurvey = {
-      questions: [
-        {
-          id: crypto.randomUUID(),
-          type: 'RADIO' as QuestionType,
-          questionText: '',
-          options: [
-            { id: crypto.randomUUID(), text: '' },
-            { id: crypto.randomUUID(), text: '' }
-          ],
-        }
-      ],
-      title: '',
+    // Always start with a fresh form when there's no draftId
+    if (!urlDraftId) {
+      localStorage.removeItem('survey_draft');
+      localStorage.removeItem('survey_draft_id');
+      return defaultSurvey;
+    }
+    
+    // Return empty state when loading a draft - will be populated by useEffect
+    return {
+      questions: [{
+        id: crypto.randomUUID(),
+        type: 'RADIO' as QuestionType,
+        questionText: '',
+        options: [
+          { id: crypto.randomUUID(), text: '' },
+          { id: crypto.randomUUID(), text: '' }
+        ],
+      }],
+      title: ''
     };
-    return saved ? JSON.parse(saved) : defaultSurvey;
   });
   const [draftId] = useState(() => {
-    const saved = localStorage.getItem('survey_draft_id');
-    return saved || crypto.randomUUID();
+    return urlDraftId || localStorage.getItem('survey_draft_id') || crypto.randomUUID();
   });
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [respondents, setRespondents] = useState(0);
@@ -57,6 +85,27 @@ export const CreateSurvey: React.FC = () => {
   };
 
   const { currentUser, loading } = useAuth();
+
+  // Load draft data if draftId is provided in URL
+  useEffect(() => {
+    const loadDraft = async () => {
+      if (urlDraftId) {
+        try {
+          const draftData = await surveyService.getDraft(urlDraftId);
+          if (draftData) {
+            setSurvey({
+              title: draftData.title,
+              questions: draftData.questions
+            });
+          }
+        } catch (error) {
+          console.error('Error loading draft:', error);
+          navigate('/create');
+        }
+      }
+    };
+    loadDraft();
+  }, [urlDraftId, navigate]);
 
   useEffect(() => {
     console.log('Auth state:', { 
