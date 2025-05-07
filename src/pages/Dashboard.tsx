@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
-import { ChevronDownIcon, RocketLaunchIcon, PencilIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon, RocketLaunchIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { DraftsList } from '../components/DraftsList';
 import logo from "../assets/new zrveys logo.png";
 
 interface Survey {
@@ -33,10 +34,7 @@ const Dashboard: React.FC = () => {
     { id: '617575', title: 'Wish list for future iDoRecall roadmap', owner: 'David Handel', fieldingStatus: '77/575 (13%)' }
   ];
 
-  const draftSurveys: Survey[] = [
-    { id: '516130', title: 'Beta test signup', owner: 'David Handel', price: 'free', modified: 'Oct 10 2018' },
-    { id: '524050', title: 'Untitled Survey #524050', owner: 'David Handel', price: 'free', modified: 'Nov 27 2018' }
-  ];
+
 
   const completedSurveys: Survey[] = [
     { id: '511890', title: 'iDoRecall - test for ideal target likelihood to sign up', owner: 'David Handel', completed: 'Oct 11 2018' },
@@ -127,42 +125,7 @@ const Dashboard: React.FC = () => {
 
       {/* Drafts Section */}
       <div className="mb-8">
-        <div className="flex items-center gap-2 mb-4 bg-gray-900 text-white px-4 py-3 rounded-t-lg">
-          <PencilIcon className="h-5 w-5" />
-          <h2 className="text-lg font-medium">Drafts</h2>
-          <span className="text-sm ml-2">{draftSurveys.length} surveys</span>
-          <ChevronDownIcon className="h-5 w-5 ml-auto" />
-        </div>
-        <div className="bg-white shadow rounded-b-lg overflow-hidden">
-          <table className="min-w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Modified</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Editor</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {draftSurveys.map((survey) => (
-                <tr key={survey.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{survey.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{survey.title}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{survey.owner}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{survey.price}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{survey.modified}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <button className="text-gray-400 hover:text-gray-600">
-                      <PencilIcon className="h-5 w-5" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DraftsList />
       </div>
 
       {/* Completed Section */}

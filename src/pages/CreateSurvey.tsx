@@ -1,65 +1,44 @@
-import React from 'react';
-import { useNavigate } from "react-router-dom";
-import { ShareSurveyModal } from "../components/survey/ShareSurveyModal";
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
-import { auth } from '../config/firebase';
-import { useSurveyStore } from '../context/surveyStore';
-import { surveyService } from '../services/surveyService.ts';
+import { surveyService } from '../services/surveyService';
 import Question from '../components/Question';
 import { QuestionType, QuestionTypeModel } from '../types/survey';
-import { FaPlus } from 'react-icons/fa';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import logo from "../assets/new zrveys logo.png";
+import { DraftSurveyModel } from '../services/surveyService';
+
+interface CreateSurveyState {
+  title: string;
+  questions: QuestionTypeModel[];
+}
 
 export const CreateSurvey: React.FC = () => {
-  const [respondents, setRespondents] = React.useState<number>(0);
-  const [isShareModalOpen, setIsShareModalOpen] = React.useState(false);
-  const [launchedSurveyId, setLaunchedSurveyId] = React.useState<string>('');
+  const [survey, setSurvey] = useState<CreateSurveyState>(() => {
+    const saved = localStorage.getItem('survey_draft');
+    const defaultSurvey = {
+      questions: [
+        {
+          id: crypto.randomUUID(),
+          type: 'RADIO' as QuestionType,
+          questionText: '',
+          options: [
+            { id: crypto.randomUUID(), text: '' },
+            { id: crypto.randomUUID(), text: '' }
+          ],
+        }
+      ],
+      title: '',
+    };
+    return saved ? JSON.parse(saved) : defaultSurvey;
+  });
+  const [draftId] = useState(() => {
+    const saved = localStorage.getItem('survey_draft_id');
+    return saved || crypto.randomUUID();
+  });
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [respondents, setRespondents] = useState(0);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const navigate = useNavigate();
-  const { logout } = useAuth();
-  const { survey, removeQuestion, updateQuestion, reorderQuestions, addQuestion } = useSurveyStore();
-  const questionsContainerRef = React.useRef<HTMLDivElement>(null);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (over && active.id !== over.id) {
-      const oldIndex = survey.questions.findIndex((q: QuestionTypeModel) => q.id === active.id);
-      const newIndex = survey.questions.findIndex((q: QuestionTypeModel) => q.id === over.id);
-
-      reorderQuestions(arrayMove(survey.questions, oldIndex, newIndex));
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/');
-    } catch (error) {
-      console.error('Failed to log out:', error);
-    }
-  };
 
   const handleAddQuestion = () => {
     const newQuestion: QuestionTypeModel = {
@@ -68,128 +47,284 @@ export const CreateSurvey: React.FC = () => {
       questionText: `Question ${survey.questions.length + 1}`,
       options: [
         { id: crypto.randomUUID(), text: 'Option 1' },
-        { id: crypto.randomUUID(), text: 'Option 2' }
-      ]
+      ],
     };
-    addQuestion(newQuestion);
+
+    setSurvey(prev => ({
+      ...prev,
+      questions: [...prev.questions, newQuestion],
+    }));
   };
 
-  return (
-    <div className="min-h-screen w-full bg-primary flex flex-col items-center">
-      <header className="w-full bg-[#264F79] shadow-lg">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
-            <img src={logo} alt="Zrveys" className="h-12" />
-          </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="bg-[#8C3375] hover:bg-[#732c60] text-white font-bold py-2 px-6 rounded-lg transition-colors"
-            >
-              Dashboard
-            </button>
-            <button
-              onClick={handleLogout}
-              className="bg-[#8C3375] hover:bg-[#732c60] text-white font-bold py-2 px-6 rounded-lg transition-colors"
-            >
-              Log out
-            </button>
-          </div>
-        </div>
-      </header>
+  const { currentUser, loading } = useAuth();
 
-      <main className="w-full max-w-5xl px-4 py-8">
-        <div className="w-full">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
+  useEffect(() => {
+    console.log('Auth state:', { 
+      currentUser: currentUser ? {
+        uid: currentUser.uid,
+        email: currentUser.email,
+        displayName: currentUser.displayName,
+        isAnonymous: currentUser.isAnonymous,
+      } : null,
+      loading 
+    });
+  }, [currentUser, loading]);
+
+  const autoSave = useCallback(async () => {
+    if (!currentUser) {
+      setSaveError('Please sign in to save drafts');
+      return;
+    }
+    
+    try {
+      setIsSavingDraft(true);
+      setSaveError(null);
+      const draftData: DraftSurveyModel = {
+        title: survey.title,
+        questions: survey.questions,
+        owner: currentUser.uid,
+        updatedAt: new Date(),
+      };
+      await surveyService.saveDraft(draftId, draftData);
+      localStorage.setItem('survey_draft', JSON.stringify(survey));
+      localStorage.setItem('survey_draft_id', draftId);
+      setLastSaved(new Date());
+    } catch (error: any) {
+      console.error('Error auto-saving survey:', error);
+      setSaveError(error.message || 'Failed to save draft. Please try again.');
+    } finally {
+      setIsSavingDraft(false);
+    }
+  }, [survey, draftId, currentUser]);
+
+  useEffect(() => {
+    if (!survey.title && !survey.questions[0].questionText) return;
+    const timer = setTimeout(autoSave, 2000);
+    return () => clearTimeout(timer);
+  }, [survey, autoSave]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="bg-white shadow-sm rounded-lg p-6 text-center">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Authentication Required</h2>
+          <p className="text-gray-600 mb-4">Please sign in to create and save surveys.</p>
+          <button
+            onClick={() => navigate('/')}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors"
           >
-            <div ref={questionsContainerRef} className="space-y-4">
-              <SortableContext
-                items={survey.questions.map((q: QuestionTypeModel) => q.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                {survey.questions.map((question: QuestionTypeModel, index: number) => (
-                  <Question
-                    key={question.id}
-                    question={question}
-                    index={index}
-                    onRemove={() => removeQuestion(question.id)}
-                    onChange={(updatedQuestion: Partial<QuestionTypeModel>) =>
-                      updateQuestion(question.id, updatedQuestion)
-                    }
-                  />
-                ))}
-              </SortableContext>
+            Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-white shadow-sm rounded-lg p-6">
+
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800">Create Survey</h1>
+              {saveError ? (
+                <div className="mt-2 text-sm text-red-600">{saveError}</div>
+              ) : isSavingDraft ? (
+                <div className="mt-2 text-sm text-blue-600">Saving...</div>
+              ) : lastSaved && (
+                <div className="mt-2 text-sm text-green-600">
+                  Last saved: {lastSaved.toLocaleTimeString()}
+                </div>
+              )}
             </div>
-          </DndContext>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+              >
+                Dashboard
+              </button>
+            </div>
+          </div>
+
+          <div className="mb-8">
+            <input
+              type="text"
+              placeholder="Survey Title (required)"
+              value={survey.title}
+              onChange={(e) => setSurvey(prev => ({ ...prev, title: e.target.value }))}
+              className={`w-full p-4 border rounded-lg text-xl font-semibold focus:outline-none focus:ring-2 focus:ring-secondary ${!survey.title.trim() ? 'border-red-500' : ''}`}
+              required
+            />
+            {!survey.title.trim() && (
+              <p className="mt-2 text-red-500 text-sm">Please enter a survey title</p>
+            )}
+          </div>
+
+          <div className="mb-8">
+            <Question
+              key={survey.questions[0].id}
+              question={{ ...survey.questions[0], index: 0 }}
+              onDelete={() => {
+                setSurvey(prev => ({
+                  ...prev,
+                  questions: prev.questions.slice(1)
+                }));
+              }}
+              onUpdate={(updates) => {
+                setSurvey(prev => ({
+                  ...prev,
+                  questions: [
+                    { ...prev.questions[0], ...updates },
+                    ...prev.questions.slice(1)
+                  ]
+                }));
+              }}
+              canDelete={false}
+            />
+          </div>
+
+          <div className="space-y-4">
+            {survey.questions.slice(1).map((question, index) => (
+              <Question
+                key={question.id}
+                question={{ ...question, index: index + 1 }}
+                onDelete={() => {
+                  setSurvey(prev => ({
+                    ...prev,
+                    questions: [
+                      ...prev.questions.slice(0, index + 1),
+                      ...prev.questions.slice(index + 2)
+                    ]
+                  }));
+                }}
+                onUpdate={(updates) => {
+                  setSurvey(prev => ({
+                    ...prev,
+                    questions: [
+                      ...prev.questions.slice(0, index + 1),
+                      { ...question, ...updates },
+                      ...prev.questions.slice(index + 2)
+                    ]
+                  }));
+                }}
+                canDelete={true}
+              />
+            ))}
+          </div>
 
           <button
             onClick={handleAddQuestion}
             className="mt-6 w-full py-3 border-2 border-dashed border-slate-600 rounded-lg text-slate-400 hover:border-secondary hover:text-secondary transition-colors flex items-center justify-center gap-2"
           >
-            <FaPlus />
             Add Question
           </button>
 
-          {/* Launch Controls */}
+          <div className="flex justify-between items-center mt-8">
+            <button
+              type="button"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              onClick={async () => {
+                setIsSavingDraft(true);
+                try {
+                  const draftData: DraftSurveyModel = {
+                    ...survey,
+                    owner: currentUser?.uid || '',
+                    updatedAt: new Date(),
+                  };
+                  await surveyService.saveDraft(draftId, draftData);
+                  localStorage.setItem('survey_draft', JSON.stringify(survey));
+                  localStorage.setItem('survey_draft_id', draftId);
+                  navigate('/dashboard');
+                } catch (error) {
+                  console.error('Error saving draft:', error);
+                  alert('Failed to save draft. Please try again.');
+                } finally {
+                  setIsSavingDraft(false);
+                }
+              }}
+              disabled={isSavingDraft}
+            >
+              {isSavingDraft ? 'Saving...' : 'Save Draft'}
+            </button>
+          </div>
+
           <div className="mt-8 flex flex-wrap justify-end gap-4">
             <select
               value={respondents}
               onChange={(e) => setRespondents(parseInt(e.target.value))}
-              className="min-w-fit flex-grow max-w-[300px] py-4 px-4 rounded-lg bg-white border border-gray-300 text-gray-700 font-medium text-base"
+              className="block w-48 px-3 py-2 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             >
-              <option value={0}>How many respondents would you like?</option>
-              {Array.from({length: 10}, (_, i) => i + 1).map(num => (
-                <option key={num} value={num}>{num} {num === 1 ? 'respondent' : 'respondents'}</option>
-              ))}
+              <option value="0">Select respondents</option>
+              <option value="10">10 respondents</option>
+              <option value="25">25 respondents</option>
+              <option value="50">50 respondents</option>
+              <option value="100">100 respondents</option>
+              <option value="250">250 respondents</option>
+              <option value="500">500 respondents</option>
+              <option value="1000">1000 respondents</option>
             </select>
 
             <button
               type="button"
               onClick={async () => {
+                if (!survey.title.trim()) {
+                  alert('Please enter a survey title');
+                  return;
+                }
+
+                if (!survey.questions[0].questionText.trim()) {
+                  alert('Please enter text for the first question');
+                  return;
+                }
+
+                const options = survey.questions[0].options || [];
+                if (options.length < 2) {
+                  alert('Please add at least two options for the first question');
+                  return;
+                }
+                if (!options.every(opt => opt.text.trim())) {
+                  alert('Please fill in all options for the first question');
+                  return;
+                }
+
+                if (respondents === 0) {
+                  alert('Please select the number of respondents');
+                  return;
+                }
+
                 try {
-                  console.log('Current auth state:', { 
-                    currentUser: auth.currentUser,
-                    uid: auth.currentUser?.uid,
-                    isAnonymous: auth.currentUser?.isAnonymous
-                  });
-                  
-                  if (!auth.currentUser) {
-                    console.error('Not authenticated');
+                  if (!currentUser) {
                     alert('Please log in to create a survey');
                     return;
                   }
                   
-                  console.log('Creating survey with data:', {
-                    title: survey.title || 'Survey',
-                    questionCount: survey.questions.length,
-                    respondents
-                  });
-                  
-                  const newSurveyId = await surveyService.createSurvey(
-                    survey.title || 'Survey',
+                  await surveyService.createSurvey(
+                    survey.title,
                     survey.questions,
                     respondents
                   );
                   
-                  console.log('Survey created successfully with ID:', newSurveyId);
-                  setLaunchedSurveyId(newSurveyId);
-                  console.log('Opening share modal for survey:', newSurveyId);
-                  setIsShareModalOpen(true);
+                  // Clear the draft after successful creation
+                  localStorage.removeItem('survey_draft');
+                  localStorage.removeItem('survey_draft_id');
+                  
+                  navigate('/dashboard');
                 } catch (error: any) {
-                  console.error('Error creating survey:', {
-                    error,
-                    name: error.name,
-                    code: error.code,
-                    message: error.message
-                  });
+                  console.error('Error creating survey:', error);
                   alert(`Failed to create survey: ${error.message}`);
                 }
               }}
               disabled={!survey.questions.some(q => {
-                // Check if question has non-default content
                 const hasQuestionContent = q.questionText && 
                                          q.questionText.trim() !== '' && 
                                          !q.questionText.startsWith('Question ');
@@ -226,21 +361,15 @@ export const CreateSurvey: React.FC = () => {
                 }) || respondents === 0
               )
                 ? 'bg-gray-400 cursor-not-allowed' 
-                : 'bg-[#8C3375] hover:bg-[#732c60] cursor-pointer'
+                : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
               }`}
             >
               Launch Survey
             </button>
           </div>
 
-          {/* Share Survey Modal */}
-          <ShareSurveyModal
-            isOpen={isShareModalOpen}
-            onClose={() => setIsShareModalOpen(false)}
-            surveyId={launchedSurveyId}
-          />
         </div>
-      </main>
+      </div>
     </div>
   );
 };

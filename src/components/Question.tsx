@@ -9,10 +9,10 @@ import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { Modal } from './common/Modal';
 
 interface QuestionProps {
-  question: QuestionTypeModel;
-  onChange: (updates: Partial<QuestionTypeModel>) => void;
-  onRemove: () => void;
-  index: number;
+  question: QuestionTypeModel & { index: number };
+  onDelete: () => void;
+  onUpdate: (updates: Partial<QuestionTypeModel>) => void;
+  canDelete?: boolean;
 }
 
 interface QuestionTypeMenuProps {
@@ -45,12 +45,7 @@ const QuestionTypeMenu: React.FC<QuestionTypeMenuProps> = ({ question, updateQue
   );
 };
 
-export default function Question({
-  question,
-  onChange,
-  onRemove,
-  index,
-}: QuestionProps) {
+const Question: React.FC<QuestionProps> = ({ question, onDelete, onUpdate, canDelete = true }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
@@ -66,6 +61,14 @@ export default function Question({
     transform: CSS.Transform.toString(transform),
     transition,
   };
+
+  const handleQuestionTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onUpdate({
+      questionText: e.target.value
+    });
+  };
+
+
 
   return (
     <motion.div
@@ -87,15 +90,15 @@ export default function Question({
             ⋮⋮
           </div>
           <div className="bg-secondary/10 text-secondary w-8 h-8 flex items-center justify-center rounded">
-            Q{index + 1}
+            Q{question.index + 1}
           </div>
           <div className="flex-1 relative">
             <input
               type="text"
-              value={question.questionText === `Question ${index + 1}` ? '' : question.questionText}
-              onChange={(e) => onChange({ questionText: e.target.value || `Question ${index + 1}` })}
+              value={question.questionText === `Question ${question.index + 1}` ? '' : question.questionText}
+              onChange={handleQuestionTextChange}
               className="w-full px-3 py-2 border rounded-md pr-10"
-              placeholder={`Question ${index + 1}`}
+              placeholder={`Question ${question.index + 1}`}
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2">
               <input
@@ -106,10 +109,10 @@ export default function Question({
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    onChange({ imageLoading: true });
+                    onUpdate({ imageLoading: true });
                     const reader = new FileReader();
                     reader.onloadend = () => {
-                      onChange({
+                      onUpdate({
                         image: reader.result as string,
                         imageLoading: false
                       });
@@ -148,12 +151,14 @@ export default function Question({
             </div>
           </div>
         </div>
-        <button
-          onClick={onRemove}
-          className="text-gray-500 hover:text-red-500 ml-2"
-        >
-          <FaTrash />
-        </button>
+        {canDelete && (
+          <button
+            onClick={onDelete}
+            className="text-gray-500 hover:text-red-500 ml-2"
+          >
+            <FaTrash />
+          </button>
+        )}
       </div>
 
       <Modal
@@ -169,7 +174,7 @@ export default function Question({
             />
             <button
               onClick={() => {
-                onChange({ image: undefined });
+                onUpdate({ image: undefined });
                 setIsImageModalOpen(false);
               }}
               className="absolute top-2 right-2 bg-white/80 hover:bg-white p-2 rounded-full text-red-500 transition-colors"
@@ -180,8 +185,10 @@ export default function Question({
         )}
       </Modal>
 
-      <QuestionTypeMenu question={question} updateQuestion={onChange} />
-      <AnswerList question={question} updateQuestion={onChange} />
+      <QuestionTypeMenu question={question} updateQuestion={onUpdate} />
+      <AnswerList question={question} updateQuestion={onUpdate} />
     </motion.div>
   );
-}
+};
+
+export default Question;
