@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import { QuestionTypeModel } from '../../types/survey';
 import { SurveyResponse, QuestionResponse } from '../../types/response';
+import { surveyService } from '../../services/surveyService';
 
 interface SurveyWidgetProps {
   survey: {
@@ -48,7 +49,7 @@ export const SurveyWidget: React.FC<SurveyWidgetProps> = ({ survey }) => {
     }
   }, [survey.id]);
 
-  const handleAnswer = (answer: string | string[]) => {
+  const handleAnswer = async (answer: string | string[]) => {
     if (!response || isCompleted) return;
 
     const currentQuestion = survey.questions[currentQuestionIndex];
@@ -69,6 +70,52 @@ export const SurveyWidget: React.FC<SurveyWidgetProps> = ({ survey }) => {
     if (currentQuestionIndex === survey.questions.length - 1) {
       newResponse.completedAt = new Date().toISOString();
       setIsCompleted(true);
+      
+      // Save response to Firestore
+      try {
+        // Ensure all required fields are present
+        const finalResponse = {
+          ...newResponse,
+          id: newResponse.id || crypto.randomUUID(),
+          surveyId: survey.id,
+          answers: newResponse.answers.map(answer => ({
+            questionId: answer.questionId,
+            answer: answer.answer || '',
+            answers: Array.isArray(answer.answers) ? answer.answers : [],
+            answeredAt: answer.answeredAt || new Date().toISOString()
+          })),
+          startedAt: newResponse.startedAt || new Date().toISOString(),
+          completedAt: new Date().toISOString(),
+          currentQuestionIndex: survey.questions.length
+        };
+
+        console.log('[SurveyWidget] Preparing to submit response:', { 
+          surveyId: survey.id, 
+          responseId: finalResponse.id,
+          answers: finalResponse.answers.length
+        });
+        
+        // Submit the response
+        await surveyService.submitSurveyResponse(survey.id, finalResponse);
+        console.log('[SurveyWidget] Response submitted successfully');
+        
+        // Force reload active surveys
+        const activeSurveys = await surveyService.getActiveSurveys();
+        console.log('[SurveyWidget] Active surveys after submission:', 
+          activeSurveys.map(s => ({
+            id: s.id,
+            responses: s.responses,
+            respondents: s.respondents,
+            progress: s.progress
+          })));
+          
+        // Clean up local storage
+        localStorage.removeItem(`survey_response_${survey.id}`);
+      } catch (error) {
+        console.error('[SurveyWidget] Error submitting response:', error);
+        alert('There was an error submitting your response. Please try again.');
+        return;
+      }
       
       // Save to completed surveys cookie
       const completedSurveys = Cookies.get('completed_surveys')?.split(',') || [];

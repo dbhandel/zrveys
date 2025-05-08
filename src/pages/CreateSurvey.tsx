@@ -66,6 +66,8 @@ export const CreateSurvey: React.FC = () => {
   const [respondents, setRespondents] = useState(0);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [showUrlModal, setShowUrlModal] = useState(false);
+  const [surveyUrl, setSurveyUrl] = useState('');
   const navigate = useNavigate();
 
   const handleAddQuestion = () => {
@@ -357,17 +359,21 @@ export const CreateSurvey: React.FC = () => {
                     return;
                   }
                   
-                  await surveyService.createSurvey(
+                  const surveyId = await surveyService.createSurvey(
                     survey.title,
                     survey.questions,
-                    respondents
+                    respondents,
+                    draftId
                   );
                   
                   // Clear the draft after successful creation
                   localStorage.removeItem('survey_draft');
                   localStorage.removeItem('survey_draft_id');
                   
-                  navigate('/dashboard');
+                  // Show the modal with the survey URL
+                  const url = `${window.location.origin}/survey/${surveyId}`;
+                  setSurveyUrl(url);
+                  setShowUrlModal(true);
                 } catch (error: any) {
                   console.error('Error creating survey:', error);
                   alert(`Failed to create survey: ${error.message}`);
@@ -419,6 +425,55 @@ export const CreateSurvey: React.FC = () => {
 
         </div>
       </div>
+
+      {/* Survey URL Modal */}
+      {showUrlModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 max-w-lg w-full">
+            <h3 className="text-lg font-bold mb-4">Survey Created Successfully!</h3>
+            <p className="mb-4">Share this URL with your respondents:</p>
+            <div className="flex items-center gap-2 mb-4">
+              <input
+                type="text"
+                value={surveyUrl}
+                readOnly
+                className="flex-1 p-2 border rounded"
+              />
+              <button
+                onClick={async () => {
+                  await navigator.clipboard.writeText(surveyUrl);
+                  const button = document.getElementById('copyButton');
+                  if (button) {
+                    button.textContent = 'Copied!';
+                    button.className = 'bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600';
+                    setTimeout(() => {
+                      if (button) {
+                        button.textContent = 'Copy';
+                        button.className = 'bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600';
+                      }
+                    }, 2000);
+                  }
+                }}
+                id="copyButton"
+                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              >
+                Copy
+              </button>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setShowUrlModal(false);
+                  navigate('/dashboard');
+                }}
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

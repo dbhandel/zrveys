@@ -5,6 +5,7 @@ import { AuthProvider } from './context/authContext';
 import { LandingPage } from './pages/LandingPage';
 import { CreateSurvey } from "./pages/CreateSurvey";
 import { TakeSurvey } from "./pages/TakeSurvey";
+import { SurveyResults } from "./pages/SurveyResults";
 import Dashboard from './pages/Dashboard';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { RequireNoAuth } from './components/auth/RequireNoAuth';
@@ -31,6 +32,7 @@ function AppContent() {
         <Route path="/create" element={<ProtectedRoute><CreateSurvey /></ProtectedRoute>} />
         <Route path="/create/:draftId" element={<ProtectedRoute><CreateSurvey /></ProtectedRoute>} />
         <Route path="/survey/:surveyId" element={<TakeSurvey />} />
+        <Route path="/results/:surveyId" element={<ProtectedRoute><SurveyResults /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </AuthProvider>

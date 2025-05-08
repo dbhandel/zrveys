@@ -3,8 +3,23 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /surveys/{surveyId} {
-      allow read, write: if request.auth != null;
+      // Allow anyone to read active surveys
+      allow read: if resource.data.active == true || request.auth != null;
+      
+      // Allow create and delete only for authenticated users
+      allow create, delete: if request.auth != null;
+      
+      // Update rules
+      allow update: if (
+        // Allow anyone to update responses on active surveys
+        (resource.data.active == true && 
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['responses'])) ||
+        // Allow authenticated users to make other changes
+        (request.auth != null && 
+         !request.resource.data.diff(resource.data).affectedKeys().hasOnly(['responses']))
+      );
     }
+    
     match /drafts/{draftId} {
       allow read, write: if request.auth != null;
     }
