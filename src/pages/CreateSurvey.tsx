@@ -31,8 +31,8 @@ export const CreateSurvey: React.FC = () => {
         options: [
           { id: crypto.randomUUID(), text: '' },
           { id: crypto.randomUUID(), text: '' }
-        ],
-      }
+        ]
+      } as QuestionTypeModel
     ],
     title: '',
   };
@@ -55,6 +55,19 @@ export const CreateSurvey: React.FC = () => {
           { id: crypto.randomUUID(), text: '' },
           { id: crypto.randomUUID(), text: '' }
         ],
+        required: false,
+        answer: '',
+        answers: [],
+        correctAnswer: '',
+        correctAnswers: [],
+        maxLength: undefined,
+        minLength: undefined,
+        maxValue: undefined,
+        minValue: undefined,
+        step: undefined,
+        placeholder: '',
+        image: undefined,
+        imageLoading: false
       }],
       title: ''
     };
@@ -77,7 +90,8 @@ export const CreateSurvey: React.FC = () => {
       questionText: `Question ${survey.questions.length + 1}`,
       options: [
         { id: crypto.randomUUID(), text: 'Option 1' },
-      ],
+        { id: crypto.randomUUID(), text: 'Option 2' }
+      ]
     };
 
     setSurvey(prev => ({
@@ -130,9 +144,43 @@ export const CreateSurvey: React.FC = () => {
     try {
       setIsSavingDraft(true);
       setSaveError(null);
+      // Clean up questions data to ensure no undefined values
+      const cleanQuestions = survey.questions.map(q => {
+        const cleanQuestion: any = {
+          id: q.id,
+          type: q.type,
+          questionText: q.questionText || ''
+        };
+
+        // Only include options for non-open-ended questions
+        if (q.type !== QuestionType.OPEN_ENDED) {
+          cleanQuestion.options = (q.options || []).map(opt => ({
+            id: opt.id,
+            text: opt.text || ''
+          }));
+        }
+
+        // Only add non-undefined optional fields
+        if (q.required !== undefined) cleanQuestion.required = q.required;
+        if (q.answer !== undefined) cleanQuestion.answer = q.answer;
+        if (q.answers !== undefined) cleanQuestion.answers = q.answers;
+        if (q.correctAnswer !== undefined) cleanQuestion.correctAnswer = q.correctAnswer;
+        if (q.correctAnswers !== undefined) cleanQuestion.correctAnswers = q.correctAnswers;
+        if (q.maxLength !== undefined) cleanQuestion.maxLength = q.maxLength;
+        if (q.minLength !== undefined) cleanQuestion.minLength = q.minLength;
+        if (q.maxValue !== undefined) cleanQuestion.maxValue = q.maxValue;
+        if (q.minValue !== undefined) cleanQuestion.minValue = q.minValue;
+        if (q.step !== undefined) cleanQuestion.step = q.step;
+        if (q.placeholder !== undefined) cleanQuestion.placeholder = q.placeholder;
+        if (q.image !== undefined) cleanQuestion.image = q.image;
+        if (q.imageLoading !== undefined) cleanQuestion.imageLoading = q.imageLoading;
+
+        return cleanQuestion as QuestionTypeModel;
+      });
+
       const draftData: DraftSurveyModel = {
-        title: survey.title,
-        questions: survey.questions,
+        title: survey.title || 'Untitled Survey',
+        questions: cleanQuestions,
         owner: currentUser.uid,
         updatedAt: new Date(),
       };
@@ -342,14 +390,17 @@ export const CreateSurvey: React.FC = () => {
                   return;
                 }
 
-                const options = survey.questions[0].options || [];
-                if (options.length < 2) {
-                  alert('Please add at least two options for the first question');
-                  return;
-                }
-                if (!options.every(opt => opt.text.trim())) {
-                  alert('Please fill in all options for the first question');
-                  return;
+                // Only check for options if it's a radio or checkbox question
+                if (survey.questions[0].type === QuestionType.RADIO || survey.questions[0].type === QuestionType.CHECKBOX) {
+                  const options = survey.questions[0].options || [];
+                  if (options.length < 2) {
+                    alert('Please add at least two options for the first question');
+                    return;
+                  }
+                  if (!options.every(opt => opt.text.trim())) {
+                    alert('Please fill in all options for the first question');
+                    return;
+                  }
                 }
 
                 if (respondents === 0) {
@@ -389,7 +440,7 @@ export const CreateSurvey: React.FC = () => {
                                          !q.questionText.startsWith('Question ');
                 
                 // For radio/checkbox, check if it has at least 2 answers with non-default content
-                if (q.type !== QuestionType.OPEN_ENDED) {
+                if (q.type === QuestionType.RADIO || q.type === QuestionType.CHECKBOX) {
                   const validAnswers = (q.options || []).filter(opt => 
                     opt.text && 
                     opt.text.trim() !== '' && 
@@ -407,7 +458,7 @@ export const CreateSurvey: React.FC = () => {
                   const hasQuestionContent = q.questionText && 
                                            q.questionText.trim() !== '' && 
                                            !q.questionText.startsWith('Question ');
-                  if (q.type !== QuestionType.OPEN_ENDED) {
+                  if (q.type === QuestionType.RADIO || q.type === QuestionType.CHECKBOX) {
                     const validAnswers = (q.options || []).filter(opt => 
                       opt.text && 
                       opt.text.trim() !== '' && 

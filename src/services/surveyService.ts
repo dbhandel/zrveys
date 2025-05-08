@@ -1,4 +1,4 @@
-import { QuestionTypeModel } from '../types/survey';
+import { QuestionTypeModel, QuestionType } from '../types/survey';
 import { SurveyResponse } from '../types/response';
 import { db, auth } from '../config/firebase';
 import { collection, doc, getDoc, getDocs, query, setDoc, updateDoc, deleteDoc, serverTimestamp, where, arrayUnion, orderBy, addDoc, QueryDocumentSnapshot, runTransaction, Transaction } from 'firebase/firestore';
@@ -172,10 +172,44 @@ class SurveyService {
         throw new Error('Invalid survey data');
       }
 
+      // Clean up questions data to ensure no undefined values
+      const cleanQuestions = survey.questions.map(q => {
+        const cleanQuestion: any = {
+          id: q.id,
+          type: q.type,
+          questionText: q.questionText || ''
+        };
+
+        // Only include options for non-open-ended questions
+        if (q.type !== QuestionType.OPEN_ENDED && q.options && q.options.length > 0) {
+          cleanQuestion.options = q.options.map(opt => ({
+            id: opt.id,
+            text: opt.text || ''
+          }));
+        }
+
+        // Only add fields that have actual values
+        if (typeof q.required === 'boolean') cleanQuestion.required = q.required;
+        if (typeof q.answer === 'string' && q.answer.length > 0) cleanQuestion.answer = q.answer;
+        if (Array.isArray(q.answers) && q.answers.length > 0) cleanQuestion.answers = q.answers;
+        if (typeof q.correctAnswer === 'string' && q.correctAnswer.length > 0) cleanQuestion.correctAnswer = q.correctAnswer;
+        if (Array.isArray(q.correctAnswers) && q.correctAnswers.length > 0) cleanQuestion.correctAnswers = q.correctAnswers;
+        if (typeof q.maxLength === 'number') cleanQuestion.maxLength = q.maxLength;
+        if (typeof q.minLength === 'number') cleanQuestion.minLength = q.minLength;
+        if (typeof q.maxValue === 'number') cleanQuestion.maxValue = q.maxValue;
+        if (typeof q.minValue === 'number') cleanQuestion.minValue = q.minValue;
+        if (typeof q.step === 'number') cleanQuestion.step = q.step;
+        if (typeof q.placeholder === 'string' && q.placeholder.length > 0) cleanQuestion.placeholder = q.placeholder;
+        if (typeof q.image === 'string' && q.image.length > 0) cleanQuestion.image = q.image;
+        if (typeof q.imageLoading === 'boolean') cleanQuestion.imageLoading = q.imageLoading;
+
+        return cleanQuestion;
+      });
+
       const draftRef = doc(this.draftsCollection, draftId);
       const draftData = {
-        title: survey.title,
-        questions: survey.questions,
+        title: survey.title.trim() || 'Untitled Survey',
+        questions: cleanQuestions,
         owner: currentUser.uid,
         updatedAt: serverTimestamp(),
         createdAt: serverTimestamp(),
@@ -237,14 +271,26 @@ class SurveyService {
 
   async getResponses(surveyId: string): Promise<any[]> {
     try {
+      console.log('[getResponses] Fetching responses for survey:', surveyId);
       const surveyDoc = await getDoc(doc(this.surveysCollection, surveyId));
+      
       if (surveyDoc.exists()) {
         const data = surveyDoc.data();
-        return data.responses || [];
+        console.log('[getResponses] Survey data:', data);
+        
+        if (!data.responses) {
+          console.log('[getResponses] No responses array found in survey data');
+          return [];
+        }
+        
+        console.log('[getResponses] Found responses:', data.responses);
+        return data.responses;
       }
+      
+      console.log('[getResponses] Survey document not found');
       return [];
     } catch (error) {
-      console.error('Error getting responses:', error);
+      console.error('[getResponses] Error getting responses:', error);
       return [];
     }
   }
