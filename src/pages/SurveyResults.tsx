@@ -164,13 +164,18 @@ export const SurveyResults: React.FC = () => {
                   {index + 1}. {question.questionText}
                 </h3>
                 {question.type === QuestionType.OPEN_ENDED ? (
-                  <div className="space-y-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {surveyData.responses
                       .map((r: SurveyResponse) => r.answers.find((a: QuestionResponse) => a.questionId === question.id)?.answer)
                       .filter(Boolean)
                       .map((response, i) => (
-                        <div key={i} className="p-3 bg-gray-50 rounded border border-gray-200">
-                          {response}
+                        <div 
+                          key={i} 
+                          className="p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                        >
+                          <p className="text-sm text-gray-700 font-normal italic">
+                            "{response}"
+                          </p>
                         </div>
                       ))}
                   </div>
