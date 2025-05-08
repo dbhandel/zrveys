@@ -310,27 +310,24 @@ export const CreateSurvey: React.FC = () => {
           </div>
 
           <div className="mt-8 flex flex-wrap justify-end gap-4">
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">
-                ✓ Select respondents
-              </label>
-              <select
-                value={respondents}
-                onChange={(e) => setRespondents(Number(e.target.value))}
-                className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              >
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
-                <option value="10">10</option>
-              </select>
-            </div>
+            <select
+              value={respondents || ''}
+              onChange={(e) => setRespondents(Number(e.target.value))}
+              className="shadow border rounded w-48 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-50"
+              required
+            >
+              <option value="" disabled># of respondents</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+            </select>
 
             <button
               type="button"
