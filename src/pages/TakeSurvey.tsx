@@ -38,6 +38,14 @@ export const TakeSurvey: React.FC = () => {
           return;
         }
 
+        // Check if survey has reached its target number of responses
+        const responseCount = surveyData.responses?.length || 0;
+        if (responseCount >= surveyData.respondents) {
+          setError('Thank you for being willing to take this survey, but it is already closed.');
+          setLoading(false);
+          return;
+        }
+
         setSurvey({
           id: surveyData.id,
           title: surveyData.title,
