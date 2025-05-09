@@ -30,6 +30,13 @@ export interface DraftListItem {
   updatedAt: Date;
 }
 
+export interface CompletedSurveyListItem {
+  id: string;
+  title: string;
+  owner: string;
+  completed: Date;
+}
+
 export interface ActiveSurveyListItem {
   id: string;
   title: string;
@@ -431,6 +438,32 @@ class SurveyService {
     }
   }
 
+  async deleteDraft(draftId: string): Promise<void> {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error('No authenticated user');
+      }
+
+      // Get the draft to verify ownership
+      const draftDoc = await getDoc(doc(this.draftsCollection, draftId));
+      if (!draftDoc.exists()) {
+        throw new Error('Draft not found');
+      }
+
+      const draftData = draftDoc.data();
+      if (draftData.owner !== currentUser.uid) {
+        throw new Error('Not authorized to delete this draft');
+      }
+
+      await deleteDoc(doc(this.draftsCollection, draftId));
+      console.log(`Deleted draft: ${draftId}`);
+    } catch (error) {
+      console.error('Error deleting draft:', error);
+      throw error;
+    }
+  }
+
   async deleteSurvey(surveyId: string): Promise<void> {
     try {
       const currentUser = auth.currentUser;
@@ -508,6 +541,32 @@ class SurveyService {
     } catch (error) {
       console.error('Error updating survey:', error);
       return false;
+    }
+  }
+
+  async getCompletedSurveys(): Promise<CompletedSurveyListItem[]> {
+    const currentUser = auth.currentUser;
+    if (!currentUser) throw new Error('Not authenticated');
+
+    try {
+      const querySnapshot = await getDocs(
+        query(
+          this.surveysCollection,
+          where('owner', '==', currentUser.uid),
+          where('active', '==', false),
+          orderBy('createdAt', 'desc')
+        )
+      );
+
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        title: doc.data().title || 'Untitled Survey',
+        owner: doc.data().owner,
+        completed: doc.data().createdAt?.toDate() || new Date(),
+      }));
+    } catch (error) {
+      console.error('Error loading completed surveys:', error);
+      throw error;
     }
   }
 

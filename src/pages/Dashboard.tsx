@@ -1,22 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
-import { ChevronDownIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { CompletedSurveysList } from '../components/CompletedSurveysList';
 import { DraftsList } from '../components/DraftsList';
 import { ActiveSurveysList } from '../components/ActiveSurveysList';
 import logo from "../assets/new zrveys logo.png";
 
-interface Survey {
-  id: string;
-  title: string;
-  owner: string;
-  fieldingStatus?: string;
-  results?: string;
-  price?: string;
-  modified?: string;
-  completed?: string;
-  editor?: boolean;
-}
+
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -30,10 +20,6 @@ const Dashboard: React.FC = () => {
       console.error('Failed to sign out:', error);
     }
   };
-  const completedSurveys: Survey[] = [
-    { id: '511890', title: 'iDoRecall - test for ideal target likelihood to sign up', owner: 'David Handel', completed: 'Oct 11 2018' },
-    { id: '516150', title: 'idr student challenges', owner: 'David Handel', completed: 'Nov 08 2018' }
-  ];
 
   return (
     <div className="min-h-screen bg-primary">
@@ -83,45 +69,9 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Completed Section */}
-      <div>
-        <div className="flex items-center gap-2 mb-4 bg-gray-900 text-white px-4 py-3 rounded-t-lg">
-          <CheckCircleIcon className="h-5 w-5" />
-          <h2 className="text-lg font-medium">Completed</h2>
-          <span className="text-sm ml-2">{completedSurveys.length} surveys</span>
-          <button className="ml-auto text-sm text-gray-300 hover:text-white">add new folder</button>
-          <ChevronDownIcon className="h-5 w-5" />
-        </div>
-        <div className="bg-white shadow rounded-b-lg overflow-hidden">
-          <table className="min-w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completed</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Results</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {completedSurveys.map((survey) => (
-                <tr key={survey.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{survey.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{survey.title}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{survey.owner}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{survey.completed}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <button className="text-gray-400 hover:text-gray-600">
-                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
-                      </svg>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        </div>
+      <div className="mb-8">
+        <CompletedSurveysList />
+      </div>
       </main>
     </div>
   );

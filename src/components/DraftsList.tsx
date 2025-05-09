@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaPencilAlt } from 'react-icons/fa';
+import { FaPencilAlt, FaTrash } from 'react-icons/fa';
 import { surveyService, DraftListItem } from '../services/surveyService';
 
 export const DraftsList: React.FC = () => {
@@ -12,6 +12,17 @@ export const DraftsList: React.FC = () => {
   useEffect(() => {
     loadDrafts();
   }, []);
+
+  const handleDelete = async (draftId: string) => {
+    try {
+      if (window.confirm('Are you sure you want to delete this draft? This cannot be undone.')) {
+        await surveyService.deleteDraft(draftId);
+        await loadDrafts(); // Refresh the list
+      }
+    } catch (error) {
+      console.error('Error deleting draft:', error);
+    }
+  };
 
   const loadDrafts = async () => {
     try {
@@ -47,7 +58,7 @@ export const DraftsList: React.FC = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm">
+    <div className="bg-white rounded-lg shadow-sm w-full max-w-6xl mx-auto">
       <div
         className="p-4 flex items-center justify-between cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
@@ -81,20 +92,17 @@ export const DraftsList: React.FC = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-32 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   ID
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-full px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Title
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Owner
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-40 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Modified
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Editor
+                <th className="w-32 px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -107,19 +115,27 @@ export const DraftsList: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {draft.title || 'Untitled Survey'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {draft.owner}
-                  </td>
+
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {formatDate(draft.updatedAt)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => navigate(`/create/${draft.id}`)}
-                      className="text-gray-400 hover:text-gray-600"
-                    >
-                      <FaPencilAlt className="w-4 h-4" />
-                    </button>
+                    <div className="flex justify-end gap-4">
+                      <button
+                        onClick={() => navigate(`/create/${draft.id}`)}
+                        className="text-gray-400 hover:text-gray-600"
+                        title="Edit Draft"
+                      >
+                        <FaPencilAlt className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(draft.id)}
+                        className="text-gray-400 hover:text-red-600"
+                        title="Delete Draft"
+                      >
+                        <FaTrash className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
