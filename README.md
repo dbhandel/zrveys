@@ -5,7 +5,7 @@ A survey site built with React + TypeScript + Vite
 
 ## Project Overview
 
-This project is a survey builder application based on the tutorial from [https://youtu.be/mxX1TYrhPFo](https://youtu.be/mxX1TYrhPFo)
+This project is a survey builder application Inspired by version 0.0.0.0.1 of askyourtargetmarket.com. JK. 
 
 ## Technical Stack
 
